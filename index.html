@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CaR: Compression and Retrieval — Implicit Memory Retrieval for Video World Models</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/lucide@0.329.0"></script>
+<style>
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:#0a0a0f;color:#e2e8f0;}
+html{scroll-behavior:smooth;}
+html:not(.dark) body{background:#fafafa;color:#1a202c;}
+
+/* Gradient text animation */
+@keyframes gradient-shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.gradient-text-animated{background:linear-gradient(270deg,#3b82f6,#8b5cf6,#ec4899,#8b5cf6,#3b82f6);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gradient-shift 6s ease infinite;}
+
+/* Glow border */
+@keyframes border-rotate{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.glow-border{position:relative;border-radius:1rem;overflow:hidden;}
+.glow-border::before{content:'';position:absolute;inset:0;border-radius:1rem;padding:1px;background:linear-gradient(135deg,#3b82f6,#8b5cf6,#ec4899,#8b5cf6,#3b82f6);background-size:300% 300%;animation:border-rotate 4s ease infinite;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;}
+
+/* Particles */
+@keyframes float-1{0%,100%{transform:translate(0,0);opacity:.4}50%{transform:translate(20px,-30px);opacity:.8}}
+@keyframes float-2{0%,100%{transform:translate(0,0);opacity:.3}50%{transform:translate(-15px,-20px);opacity:.7}}
+@keyframes float-3{0%,100%{transform:translate(0,0);opacity:.5}50%{transform:translate(10px,-25px);opacity:.9}}
+.p1{animation:float-1 5s ease-in-out infinite}.p2{animation:float-2 7s ease-in-out infinite 1s}.p3{animation:float-3 6s ease-in-out infinite 2s}
+
+/* Pulse glow */
+@keyframes glow-pulse{0%,100%{box-shadow:0 0 20px rgba(139,92,246,.2)}50%{box-shadow:0 0 40px rgba(139,92,246,.4)}}
+.pulse-glow{animation:glow-pulse 3s ease-in-out infinite;}
+
+/* Card hover */
+.card-hover{transition:transform .3s,box-shadow .3s}.card-hover:hover{transform:translateY(-4px);box-shadow:0 20px 40px -12px rgba(139,92,246,.3)}
+
+/* Grid bg */
+.grid-bg{background-image:linear-gradient(rgba(59,130,246,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.03) 1px,transparent 1px);background-size:40px 40px;}
+
+/* Glass */
+.glass{background:rgba(15,15,25,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+
+/* Button glow */
+.btn-glow{position:relative;overflow:hidden;}.btn-glow::after{content:'';position:absolute;inset:-2px;background:linear-gradient(135deg,#3b82f6,#8b5cf6,#ec4899);border-radius:inherit;z-index:-1;opacity:.5;filter:blur(8px);transition:opacity .3s}.btn-glow:hover::after{opacity:1}
+
+/* Beam */
+.beam{position:absolute;width:1px;height:200px;background:linear-gradient(to bottom,transparent,rgba(139,92,246,.3),transparent);}
+
+/* Section animate */
+.section-animate{opacity:0;transform:translateY(30px);transition:opacity .6s ease-out,transform .6s ease-out}.section-animate.visible{opacity:1;transform:translateY(0)}
+
+/* Video card */
+.video-card{transition:all .3s ease;cursor:pointer;border-radius:1rem;overflow:hidden;}.video-card:hover{transform:translateY(-4px);box-shadow:0 20px 40px -12px rgba(139,92,246,.25)}
+
+/* Prompt */
+.prompt-text{transition:color .2s}.prompt-text:hover{color:#a78bfa}
+.prompt-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(4px)}.prompt-modal-overlay.active{opacity:1;pointer-events:all}
+.prompt-modal{background:#1a1a2e;border:1px solid rgba(139,92,246,.3);border-radius:1rem;padding:24px;max-width:500px;width:90%;box-shadow:0 20px 60px rgba(139,92,246,.2)}
+
+/* Line clamp */
+.line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* Teaser caption alignment */
+.teaser-grid .video-card{display:flex;flex-direction:column;}
+.teaser-grid .video-card .p-4{margin-top:auto;}
+
+/* Gradient term */
+.gradient-term{background:linear-gradient(135deg,#3b82f6,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:600;}
+
+/* Light mode overrides */
+html:not(.dark) .glass{background:rgba(255,255,255,.8)}
+html:not(.dark) .glow-border::before{opacity:.5}
+html:not(.dark) .grid-bg{background-image:linear-gradient(rgba(99,102,241,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,.06) 1px,transparent 1px)}
+html:not(.dark) .video-card{background:#fff;border:1px solid #e5e7eb}
+html:not(.dark) .video-card:hover{box-shadow:0 12px 24px -8px rgba(0,0,0,.15)}
+</style>
+</head>
+<body class="antialiased min-h-screen relative overflow-x-hidden">
+
+<!-- Background Effects -->
+<div class="fixed inset-0 pointer-events-none grid-bg"></div>
+<div class="fixed pointer-events-none inset-0 overflow-hidden">
+    <div class="absolute w-[600px] h-[600px] top-[-15%] right-[-10%] rounded-full bg-blue-600/10 blur-[140px] p1"></div>
+    <div class="absolute w-[500px] h-[500px] top-[35%] left-[-12%] rounded-full bg-purple-600/10 blur-[120px] p2"></div>
+    <div class="absolute w-[400px] h-[400px] bottom-[-5%] right-[15%] rounded-full bg-pink-600/8 blur-[100px] p3"></div>
+    <div class="absolute w-[300px] h-[300px] top-[60%] left-[40%] rounded-full bg-indigo-600/5 blur-[80px] p1"></div>
+</div>
+<div class="fixed pointer-events-none inset-0 overflow-hidden">
+    <div class="absolute top-[12%] right-[15%] w-2 h-2 bg-blue-400 rounded-full p1 blur-[1px]"></div>
+    <div class="absolute top-[28%] left-[10%] w-1.5 h-1.5 bg-purple-400 rounded-full p2 blur-[1px]"></div>
+    <div class="absolute top-[55%] right-[8%] w-1 h-1 bg-pink-400 rounded-full p3 blur-[0.5px]"></div>
+    <div class="absolute top-[70%] left-[20%] w-2 h-2 bg-blue-300 rounded-full p1 blur-[1px]"></div>
+    <div class="absolute top-[85%] right-[30%] w-1.5 h-1.5 bg-purple-300 rounded-full p2 blur-[1px]"></div>
+    <div class="absolute top-[40%] left-[50%] w-1 h-1 bg-cyan-400 rounded-full p3 blur-[0.5px]"></div>
+    <div class="absolute top-[18%] left-[35%] w-1 h-1 bg-pink-300 rounded-full p1 blur-[0.5px]"></div>
+    <div class="absolute top-[62%] left-[65%] w-1.5 h-1.5 bg-indigo-400 rounded-full p2 blur-[1px]"></div>
+</div>
+<div class="fixed pointer-events-none inset-0 overflow-hidden">
+    <div class="beam top-0 left-[20%] opacity-30"></div>
+    <div class="beam top-0 right-[30%] opacity-20" style="height:300px"></div>
+    <div class="beam top-0 left-[60%] opacity-15" style="height:250px"></div>
+</div>
+
+<!-- Theme Toggle -->
+<div class="fixed top-4 right-4 z-50">
+<button class="flex items-center gap-2 glass border border-white/10 text-gray-300 px-4 py-2 rounded-full font-medium shadow-lg hover:border-purple-500/30 transition-all duration-300" id="theme-toggle">
+<i class="w-4 h-4 hidden" data-lucide="sun" id="theme-icon-light"></i>
+<i class="w-4 h-4" data-lucide="moon" id="theme-icon-dark"></i>
+<span class="text-sm" id="theme-label">Dark</span>
+</button>
+</div>
+
+<!-- ==================== HERO ==================== -->
+<header class="relative z-10 max-w-6xl mx-auto px-6 pt-28 pb-12 text-center">
+    <div class="flex justify-center mb-8">
+        <div class="relative">
+            <div class="absolute inset-0 w-24 h-24 bg-purple-500/20 rounded-full blur-xl pulse-glow -translate-x-2 -translate-y-2"></div>
+            <!-- Logo Plan A: Abstract geometric lens -->
+            <svg width="90" height="90" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg" class="relative p3">
+                <circle cx="45" cy="45" r="40" stroke="url(#logoGradA)" stroke-width="2" fill="none" stroke-dasharray="6 4"/>
+                <circle cx="45" cy="45" r="28" stroke="url(#logoGradA)" stroke-width="1.5" fill="none" opacity=".6"/>
+                <circle cx="45" cy="45" r="20" fill="url(#logoGradA)" opacity=".12"/>
+                <circle cx="45" cy="45" r="6" fill="url(#logoGradA)"/>
+                <path d="M45 5 L45 15" stroke="url(#logoGradA)" stroke-width="2" stroke-linecap="round"/>
+                <path d="M45 75 L45 85" stroke="url(#logoGradA)" stroke-width="2" stroke-linecap="round"/>
+                <path d="M5 45 L15 45" stroke="url(#logoGradA)" stroke-width="2" stroke-linecap="round"/>
+                <path d="M75 45 L85 45" stroke="url(#logoGradA)" stroke-width="2" stroke-linecap="round"/>
+                <path d="M28 28 L35 35" stroke="#ec4899" stroke-width="1.5" stroke-linecap="round" opacity=".8"/>
+                <path d="M62 28 L55 35" stroke="#ec4899" stroke-width="1.5" stroke-linecap="round" opacity=".8"/>
+                <path d="M28 62 L35 55" stroke="#ec4899" stroke-width="1.5" stroke-linecap="round" opacity=".8"/>
+                <path d="M62 62 L55 55" stroke="#ec4899" stroke-width="1.5" stroke-linecap="round" opacity=".8"/>
+                <defs><linearGradient id="logoGradA" x1="0" y1="0" x2="90" y2="90"><stop offset="0%" stop-color="#3b82f6"/><stop offset="50%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs>
+            </svg>
+        </div>
+    </div>
+    <h1 class="text-6xl md:text-8xl font-black gradient-text-animated tracking-tight mb-5">CaR</h1>
+    <p class="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed font-light">Compression and Retrieval:<br/><span class="font-semibold text-gray-200">Implicit Memory Retrieval for Video World Models</span></p>
+    <p class="mt-5 text-gray-400 max-w-4xl mx-auto">
+        <span class="font-medium">Zhan Peng</span><sup>1</sup>,
+        <span class="font-medium">Jie Ma</span><sup>2</sup>,
+        <span class="font-medium">Huiqiang Sun</span><sup>1</sup>,
+        <span class="font-medium">Chong Gao</span><sup>3</sup>,
+        <span class="font-medium">Zhijie Xue</span><sup>1</sup>,
+        <span class="font-medium">Zhiyu Pan</span><sup>1</sup>,
+        <span class="font-medium">Zhiguo Cao</span><sup>1,*</sup>,
+        <span class="font-medium">Jun Liang</span><sup>2</sup>,
+        <span class="font-medium">Jing Li</span><sup>2</sup>
+    </p>
+    <p class="mt-3 text-sm text-gray-500">
+        <sup>1</sup>Huazhong University of Science and Technology &nbsp;
+        <sup>2</sup>HUJING Digital Media & Entertainment Group &nbsp;
+        <sup>3</sup>Sun Yat-sen University
+    </p>
+    <p class="mt-2 text-xs text-gray-500"><sup>*</sup>Corresponding author</p>
+    <div class="flex flex-wrap justify-center gap-4 mt-10">
+        <a href="#" class="btn-glow relative inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5"><i class="w-4 h-4" data-lucide="file-text"></i>Paper</a>
+        <a href="https://github.com/Orange-3DV-Team/CaR" target="_blank" class="btn-glow relative inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-semibold rounded-full transition-all duration-300 hover:-translate-y-0.5"><i class="w-4 h-4" data-lucide="github"></i>Code</a>
+        <a href="#" class="inline-flex items-center gap-2 px-7 py-3 bg-white/5 border border-white/10 text-gray-300 font-medium rounded-full hover:bg-white/10 hover:border-pink-500/30 transition-all duration-300 hover:-translate-y-0.5 backdrop-blur-sm"><i class="w-4 h-4" data-lucide="database"></i>SceneFly Dataset (Coming Soon)</a>
+    </div>
+</header>
+
+<main class="relative z-10 max-w-6xl mx-auto px-6 pb-20">
+
+<!-- ==================== TEASER DEMOS ==================== -->
+<section class="mb-20 section-animate">
+    <div class="mb-8"><h2 class="text-3xl font-bold text-white mb-3">Teaser</h2><p class="text-gray-500">Showcasing four core capabilities of CaR</p></div>
+    <div class="grid md:grid-cols-2 gap-6 teaser-grid">
+        <div class="video-card glass border border-white/5">
+            <div class="aspect-video bg-black"><video autoplay muted loop playsinline class="w-full h-full object-contain"><source src="./assets/demo/scene_exploration_camera.mp4" type="video/mp4"/></video></div>
+            <div class="p-4"><span class="inline-block text-xs font-bold px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 mb-1">I2V — Camera</span><h3 class="font-semibold text-white text-sm">Single Image Scene Exploration (Camera)</h3></div>
+        </div>
+        <div class="video-card glass border border-white/5">
+            <div class="aspect-video bg-black"><video autoplay muted loop playsinline class="w-full h-full object-contain"><source src="./assets/demo/history_extension.mp4" type="video/mp4"/></video></div>
+            <div class="p-4"><span class="inline-block text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mb-1">V2V</span><h3 class="font-semibold text-white text-sm">History Video Extension</h3></div>
+        </div>
+        <div class="video-card glass border border-white/5">
+            <div class="aspect-video bg-black"><video autoplay muted loop playsinline class="w-full h-full object-contain"><source src="./assets/open/i2v/sample_010/final_video_indicator.mp4" type="video/mp4"/></video></div>
+            <div class="p-4"><span class="inline-block text-xs font-bold px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 mb-1">I2V — Action</span><h3 class="font-semibold text-white text-sm">Single Image Scene Exploration (Action)</h3></div>
+        </div>
+        <div class="video-card glass border border-white/5">
+            <div class="aspect-video bg-black"><video autoplay muted loop playsinline class="w-full h-full object-contain"><source src="./assets/demo/camera_motion_demo_opendomain_32.mp4" type="video/mp4"/></video></div>
+            <div class="p-4"><span class="inline-block text-xs font-bold px-2 py-0.5 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 mb-1">Hard-cut</span><h3 class="font-semibold text-white text-sm">Flexible Viewpoint Switching</h3></div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== ABSTRACT ==================== -->
+<section class="mb-20 section-animate">
+    <div class="mb-6"><h2 class="text-3xl font-bold text-white">Abstract</h2></div>
+    <div class="glow-border"><div class="glass rounded-2xl p-8 md:p-10">
+        <p class="text-gray-300 leading-relaxed text-[16px] text-justify">Video world models hold promise for simulating interactive environments, yet maintaining consistent long-term memory across complex camera trajectories remains a critical challenge. Existing methods typically rely on computationally expensive context scaling or rigid heuristic retrieval mechanisms, which lacks generalization to varying camera trajectories and environments. In this paper, we propose <strong class="gradient-term">CaR</strong>, an attention-driven implicit memory retrieval mechanism to overcome these limitations. By injecting viewpoint information via positional encoding, our method performs flexible memory retrieval through attention computation. To efficiently process extended contexts with minimal computational overhead, we further introduce a lightweight context compression network. Furthermore, we construct <strong class="gradient-term">SceneFly</strong>, a large-scale synthetic dataset featuring realistic camera trajectories and frame-level annotations to train and evaluate long-horizon video world models. Extensive experiments demonstrate that our approach achieves state-of-the-art results on established benchmarks and exhibits strong generalization to open-domain scenes.</p>
+    </div></div>
+</section>
+
+<!-- ==================== TL;DR ==================== -->
+<section class="mb-20 section-animate">
+    <div class="glow-border pulse-glow"><div class="glass rounded-2xl p-8 relative">
+        <div class="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-purple-500/5 to-transparent rounded-bl-full"></div>
+        <div class="relative">
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-purple-400 uppercase tracking-wider mb-4"><i class="w-3 h-3" data-lucide="zap"></i>TL;DR</div>
+            <p class="text-lg text-gray-300 leading-relaxed"><span class="gradient-term">CaR</span> eliminates handcrafted retrieval rules by letting the model retrieve directly within the attention mechanism. A dedicated <span class="font-semibold text-blue-400">Retrieval Attention</span> branch encodes each token with Relative Pose Encoding, so attention scores naturally reflect viewpoint similarity. Combined with efficient <span class="font-semibold text-purple-400">context compression</span>, CaR enables consistent long-horizon generation and uniquely supports <span class="font-semibold text-pink-400">Camera Hard Cut</span> transitions with fully discontinuous trajectories.</p>
+        </div>
+    </div></div>
+</section>
+
+<!-- ==================== MOTIVATION ==================== -->
+<section class="mb-20 section-animate">
+    <div class="mb-8"><h2 class="text-3xl font-bold text-white mb-3">Motivation</h2><p class="text-gray-500 max-w-2xl">Comparison of three memory retrieval paradigms for video world models</p></div>
+    <div class="glow-border card-hover"><div class="glass rounded-2xl p-6 text-center">
+        <img src="./assets/fig1.png" alt="Motivation" class="w-full rounded-xl" style="background:#111;"/>
+        <p class="text-sm text-gray-400 mt-4 leading-relaxed max-w-3xl mx-auto">(1) Scaling up the context window to utilize the entire context as memory is computationally prohibitive, rendering it impractical. (2) Explicit retrieval relies on hand-crafted heuristic rules; the rigidity of these rules severely restricts the model's generalization across diverse camera trajectories and scenes. (3) In contrast, our implicit retrieval is an attention-driven mechanism where the model performs retrieval directly within the global context, yielding both greater flexibility and superior performance.</p>
+    </div></div>
+</section>
+
+<!-- ==================== METHOD OVERVIEW ==================== -->
+<section class="mb-20 section-animate">
+    <div class="mb-8"><h2 class="text-3xl font-bold text-white mb-3">Method Overview</h2><p class="text-gray-500 whitespace-nowrap">Three core innovations enabling long-horizon video generation with implicit memory</p></div>
+    <div class="glow-border card-hover mb-8"><div class="glass rounded-2xl p-6 text-center">
+        <img src="./assets/pipeline.png" alt="Method Overview" class="w-full rounded-xl" style="background:#111;"/>
+        <p class="text-sm text-gray-400 mt-4 leading-relaxed max-w-3xl mx-auto">A dual-branch compression network converts the historical video into compact context tokens. The context, an uncompressed sink frame, and noisy target tokens are then processed by two parallel attention branches: standard self-attention preserves the pretrained video prior, while <strong class="text-blue-400">Retrieval Attention</strong> uses relative camera poses to retrieve relevant history and control the target viewpoint.</p>
+    </div></div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="glow-border card-hover"><div class="glass rounded-2xl p-7 h-full relative">
+            <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-5"><i class="w-6 h-6 text-blue-400" data-lucide="search"></i></div>
+            <h3 class="text-lg font-semibold text-white mb-2">Implicit Memory Retrieval</h3>
+            <p class="text-sm text-gray-400 leading-relaxed">A zero-initialized <strong class="text-blue-400">Retrieval Attention</strong> branch runs in parallel with standard self-attention. <strong class="text-blue-400">Relative Pose Encoding</strong> injects relative camera viewpoints into attention, naturally suppressing irrelevant history and amplifying geometrically similar viewpoints — no handcrafted rules needed.</p>
+        </div></div>
+        <div class="glow-border card-hover"><div class="glass rounded-2xl p-7 h-full relative">
+            <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-5"><i class="w-6 h-6 text-purple-400" data-lucide="minimize-2"></i></div>
+            <h3 class="text-lg font-semibold text-white mb-2">Context Compression</h3>
+            <p class="text-sm text-gray-400 leading-relaxed">A dual-branch encoder combines a coarse path (pixel-space downsampling) with a detail path (latent downsampler), dramatically reducing the context token count. This makes global attention over the full history computationally affordable without discarding retrieval-relevant evidence.</p>
+        </div></div>
+        <div class="glow-border card-hover"><div class="glass rounded-2xl p-7 h-full relative">
+            <div class="w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center mb-5"><i class="w-6 h-6 text-pink-400" data-lucide="camera"></i></div>
+            <h3 class="text-lg font-semibold text-white mb-2">Flexible Viewpoint Switching</h3>
+            <p class="text-sm text-gray-400 leading-relaxed">Supports <strong class="text-pink-400">Camera Hard Cut</strong> generation — discontinuous viewpoint transitions with no local frame continuity. By independently encoding past contexts, the model must retrieve purely from long-term memory, directly demonstrating spatial generalization.</p>
+        </div></div>
+    </div>
+</section>
+
+<!-- ==================== ATTENTION VISUALIZATION ==================== -->
+<section class="mb-20 section-animate">
+    <div class="mb-8"><h2 class="text-3xl font-bold text-white mb-3">Attention Visualization</h2><p class="text-gray-500 whitespace-nowrap">The attention mechanism automatically focuses on viewpoints most relevant to the current generation target</p></div>
+    <div class="glow-border card-hover"><div class="glass rounded-2xl p-6 text-center">
+        <img src="./assets/attention_visualization.png" alt="Attention Visualization" class="w-full rounded-xl" style="max-height:500px;object-fit:contain;"/>
+        <p class="text-sm text-gray-400 mt-4 leading-relaxed max-w-3xl mx-auto">Attention logits from the generation target to all context frames via the Retrieval Attention branch. The model automatically suppresses attention to frames with dissimilar camera poses and amplifies attention to geometrically similar viewpoints, empirically validating the implicit retrieval mechanism driven by Relative Pose Encoding.</p>
+    </div></div>
+</section>
+
+<!-- ==================== I2V RESULTS ==================== -->
+<section class="mb-20 section-animate">
+    <div class="text-left mb-8">
+        <h2 class="text-3xl font-bold text-white mb-3">Single Image Scene Exploration</h2>
+        <p class="text-gray-500 max-w-3xl">Given a single image and target camera trajectory, CaR generates scene-consistent videos from novel viewpoints. The Retrieval Attention branch retrieves relevant visual memory from the compressed context to maintain spatial consistency across diverse scenes and motion styles.</p>
+    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- I2V Sample 19 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img alt="Input" class="w-full h-full object-cover" src="./assets/open/i2v/sample_019/thumbnail.jpg" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="A dreamcore pink-pastel bedroom with floating objects.">A dreamcore pink-pastel bedroom with floating objects.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video autoplay muted loop playsinline class="w-full h-full object-contain"><source src="./assets/open/i2v/sample_019/final_video.mp4" type="video/mp4"/></video></div>
+        </div>
+        <!-- I2V Sample 20 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img alt="Input" class="w-full h-full object-cover" src="./assets/open/i2v/sample_020/thumbnail.jpg" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="A vibrant pixel-art floating island game world. Camera slowly scrolls forward, revealing new terrain.">A vibrant pixel-art floating island game world. Camera slowly scrolls forward, revealing new terrain.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video autoplay muted loop playsinline class="w-full h-full object-contain"><source src="./assets/open/i2v/sample_020/final_video.mp4" type="video/mp4"/></video></div>
+        </div>
+        <!-- I2V Sample 14 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img alt="Input" class="w-full h-full object-cover" src="./assets/open/i2v/sample_014/thumbnail.jpg" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="A cosy independent bookshop with floor-to-ceiling shelves.">A cosy independent bookshop with floor-to-ceiling shelves.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video autoplay muted loop playsinline class="w-full h-full object-contain"><source src="./assets/open/i2v/sample_014/final_video.mp4" type="video/mp4"/></video></div>
+        </div>
+        <!-- I2V Sample 7 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img alt="Input" class="w-full h-full object-cover" src="./assets/open/i2v/sample_007/thumbnail.jpg" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="A suspension bridge over a city river at night in black and white.">A suspension bridge over a city river at night in black and white.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video autoplay muted loop playsinline class="w-full h-full object-contain"><source src="./assets/open/i2v/sample_007/final_video.mp4" type="video/mp4"/></video></div>
+        </div>
+        <!-- I2V Sample 18 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img alt="Input" class="w-full h-full object-cover" src="./assets/open/i2v/sample_018/thumbnail.jpg" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="A pour-over coffee brewing on a cafe counter with steam rising.">A pour-over coffee brewing on a cafe counter with steam rising.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video autoplay muted loop playsinline class="w-full h-full object-contain"><source src="./assets/open/i2v/sample_018/final_video.mp4" type="video/mp4"/></video></div>
+        </div>
+        <!-- I2V Sample 13 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img alt="Input" class="w-full h-full object-cover" src="./assets/open/i2v/sample_013/thumbnail.jpg" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="A serene Japanese tea ceremony room with tatami mats.">A serene Japanese tea ceremony room with tatami mats.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video autoplay muted loop playsinline class="w-full h-full object-contain"><source src="./assets/open/i2v/sample_013/final_video.mp4" type="video/mp4"/></video></div>
+        </div>
+        <!-- I2V Sample 1 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img alt="Input" class="w-full h-full object-cover" src="./assets/open/i2v/sample_001/thumbnail.jpg" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="Golden autumn leaves scattered on a sunlit surface.">Golden autumn leaves scattered on a sunlit surface.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video autoplay muted loop playsinline class="w-full h-full object-contain"><source src="./assets/open/i2v/sample_001/final_video.mp4" type="video/mp4"/></video></div>
+        </div>
+        <!-- I2V Sample 17 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img alt="Input" class="w-full h-full object-cover" src="./assets/open/i2v/sample_017/thumbnail.jpg" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="A low-poly geometric mountain landscape at sunset.">A low-poly geometric mountain landscape at sunset.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video autoplay muted loop playsinline class="w-full h-full object-contain"><source src="./assets/open/i2v/sample_017/final_video.mp4" type="video/mp4"/></video></div>
+        </div>
+        <!-- I2V Sample 11 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img alt="Input" class="w-full h-full object-cover" src="./assets/open/i2v/sample_011/thumbnail.jpg" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="A village scene rendered in oil painting style, warm afternoon light, impressionist brush strokes, cobblestone street.">A village scene rendered in oil painting style, warm afternoon light...</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video autoplay muted loop playsinline class="w-full h-full object-contain"><source src="./assets/open/i2v/sample_011/final_video.mp4" type="video/mp4"/></video></div>
+        </div>
+        <!-- I2V Sample 5 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img alt="Input" class="w-full h-full object-cover" src="./assets/open/i2v/sample_005/thumbnail.jpg" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="Golden and orange autumn leaves in a sunlit deciduous forest.">Golden and orange autumn leaves in a sunlit deciduous forest.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video autoplay muted loop playsinline class="w-full h-full object-contain"><source src="./assets/open/i2v/sample_005/final_video.mp4" type="video/mp4"/></video></div>
+        </div>
+        <!-- I2V Sample 4 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img alt="Input" class="w-full h-full object-cover" src="./assets/open/i2v/sample_004/thumbnail.jpg" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="A mountain goat on rocky alpine hillside under clear sky.">A mountain goat on rocky alpine hillside under clear sky.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video autoplay muted loop playsinline class="w-full h-full object-contain"><source src="./assets/open/i2v/sample_004/final_video.mp4" type="video/mp4"/></video></div>
+        </div>
+        <!-- I2V Sample 2 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img alt="Input" class="w-full h-full object-cover" src="./assets/open/i2v/sample_002/thumbnail.jpg" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="A snow-capped mountain summit rising above dramatic clouds.">A snow-capped mountain summit rising above dramatic clouds.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video autoplay muted loop playsinline class="w-full h-full object-contain"><source src="./assets/open/i2v/sample_002/final_video.mp4" type="video/mp4"/></video></div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== VIEWPOINT SWITCHING ==================== -->
+<section class="mb-20 section-animate">
+    <div class="text-left mb-8">
+        <h2 class="text-3xl font-bold text-white mb-3">Flexible Viewpoint Switching</h2>
+        <p class="text-gray-500 max-w-3xl">CaR uniquely supports Camera Hard Cut generation — synthesizing videos where the target camera trajectory is fully discontinuous relative to the input context. By enforcing abrupt viewpoint shifts and independently encoding past contexts, this setting acts as a pure retrieval test devoid of local frame continuity.</p>
+    </div>
+    <div class="grid md:grid-cols-2 gap-6">
+        <!-- opendomain_22 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img src="./assets/open/viewpoint/opendomain_22/thumbnail.jpg" alt="Input" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="A misty green hillside with fog rolling over pine trees.">A misty green hillside with fog rolling over pine trees.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video controls muted loop playsinline autoplay class="w-full h-full object-contain"><source src="./assets/demo/camera_motion_demo_opendomain_22.mp4" type="video/mp4"/></video></div>
+        </div>
+        <!-- opendomain_32 (now showing opendomain_35 content) -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img src="./assets/open/viewpoint/opendomain_35/thumbnail.jpg" alt="Input" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="Dry golden grass meadow in summer with dark pine forest behind. Camera slowly pushes through the grass.">Dry golden grass meadow in summer with dark pine forest behind. Camera slowly pushes through the grass.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video controls muted loop playsinline autoplay class="w-full h-full object-contain"><source src="./assets/demo/camera_motion_demo_opendomain_35.mp4" type="video/mp4"/></video></div>
+        </div>
+        <!-- opendomain_50 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img src="./assets/open/viewpoint/opendomain_50/thumbnail.jpg" alt="Input" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="A snow-capped mountain range under dramatic clouds.">A snow-capped mountain range under dramatic clouds.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video controls muted loop playsinline autoplay class="w-full h-full object-contain"><source src="./assets/demo/camera_motion_demo_opendomain_50.mp4" type="video/mp4"/></video></div>
+        </div>
+        <!-- opendomain_27 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img src="./assets/open/viewpoint/opendomain_27/thumbnail.jpg" alt="Input" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="A stone arch bridge over a calm river in a European city.">A stone arch bridge over a calm river in a European city.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video controls muted loop playsinline autoplay class="w-full h-full object-contain"><source src="./assets/demo/camera_motion_demo_opendomain_27.mp4" type="video/mp4"/></video></div>
+        </div>
+        <!-- opendomain_10 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img src="./assets/open/viewpoint/opendomain_10/thumbnail.jpg" alt="Input" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="The Great Wall of China winding over misty mountains.">The Great Wall of China winding over misty mountains.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video controls muted loop playsinline autoplay class="w-full h-full object-contain"><source src="./assets/demo/camera_motion_demo_opendomain_10.mp4" type="video/mp4"/></video></div>
+        </div>
+        <!-- opendomain_51 -->
+        <div class="video-card glass border border-white/5">
+            <div class="flex border-b border-white/5 h-20">
+                <div class="w-20 h-20 shrink-0 bg-gray-900"><img src="./assets/open/viewpoint/opendomain_51/thumbnail.jpg" alt="Input" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-gray-600\'>No Img</div>'"/></div>
+                <div class="flex-1 p-2 overflow-hidden"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Prompt</p><p class="text-xs text-gray-400 italic leading-snug line-clamp-2 cursor-pointer prompt-text" title="A lush tropical waterfall into a turquoise pool.">A lush tropical waterfall into a turquoise pool.</p></div>
+            </div>
+            <div class="aspect-video bg-black"><video controls muted loop playsinline autoplay class="w-full h-full object-contain"><source src="./assets/demo/camera_motion_demo_opendomain_51.mp4" type="video/mp4"/></video></div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== BIBTEX ==================== -->
+<section class="mb-20 section-animate">
+    <div class="mb-6"><h2 class="text-3xl font-bold text-white">BibTeX</h2></div>
+    <div class="glow-border"><div class="glass rounded-2xl p-6 overflow-x-auto">
+        <pre class="text-sm text-gray-300 font-mono"><code>@article{peng2026car,
+    title={Compression and Retrieval: Implicit Memory Retrieval for Video World Models},
+    author={Peng, Zhan and Ma, Jie and Sun, Huiqiang and Gao, Chong and
+            Xue, Zhijie and Pan, Zhiyu and Cao, Zhiguo and
+            Liang, Jun and Li, Jing},
+    journal={arXiv},
+    year={2026}
+}</code></pre>
+    </div></div>
+</section>
+
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="relative z-10 border-t border-white/5 py-12">
+    <div class="max-w-6xl mx-auto px-6 text-center">
+        <div class="flex justify-center mb-4">
+            <svg width="36" height="36" viewBox="0 0 90 90" fill="none" class="opacity-40"><circle cx="45" cy="45" r="40" stroke="url(#fGrad)" stroke-width="2" fill="none" stroke-dasharray="6 4"/><circle cx="45" cy="45" r="6" fill="url(#fGrad)"/><defs><linearGradient id="fGrad" x1="0" y1="0" x2="90" y2="90"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs></svg>
+        </div>
+        <p class="text-gray-500 text-sm">&copy; 2026 CaR Authors. All rights reserved.</p>
+        <p class="text-gray-600 text-xs mt-2">This project is intended solely for academic research and effect demonstration.</p>
+    </div>
+</footer>
+
+<script>
+// Initialize Icons
+lucide.createIcons();
+
+/* ===== Theme Toggle ===== */
+function initTheme(){
+    const saved=localStorage.getItem('theme');
+    if(saved==='light'){document.documentElement.classList.remove('dark');}
+    updateThemeIcon();
+    document.getElementById('theme-toggle').addEventListener('click',()=>{
+        document.documentElement.classList.toggle('dark');
+        const isDark=document.documentElement.classList.contains('dark');
+        localStorage.setItem('theme',isDark?'dark':'light');
+        updateThemeIcon();
+    });
+}
+function updateThemeIcon(){
+    const isDark=document.documentElement.classList.contains('dark');
+    document.getElementById('theme-icon-light').classList.toggle('hidden',isDark);
+    document.getElementById('theme-icon-dark').classList.toggle('hidden',!isDark);
+    document.getElementById('theme-label').textContent=isDark?'Dark':'Light';
+}
+
+/* ===== Scroll Animation ===== */
+function initScrollAnimation(){
+    const sections=document.querySelectorAll('.section-animate');
+    const observer=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.08});
+    sections.forEach(s=>observer.observe(s));
+}
+
+/* ===== Autoplay Videos ===== */
+function initAutoplayVideos(){
+    const videos=document.querySelectorAll('video[autoplay]');
+    const observer=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting)e.target.play().catch(()=>{});else e.target.pause();});},{threshold:0.25});
+    videos.forEach(v=>observer.observe(v));
+}
+
+/* ===== Prompt Modal ===== */
+function initPromptModal(){
+    const overlay=document.createElement('div');
+    overlay.className='prompt-modal-overlay';
+    overlay.innerHTML='<div class="prompt-modal"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-2">Full Prompt</p><p class="text-sm text-gray-300 leading-relaxed" id="prompt-modal-text"></p><button class="mt-4 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-sm hover:opacity-90 transition" onclick="closePromptModal()">Close</button></div>';
+    document.body.appendChild(overlay);
+    document.querySelectorAll('.prompt-text').forEach(el=>{
+        el.addEventListener('click',function(){
+            document.getElementById('prompt-modal-text').textContent=this.getAttribute('title')||this.textContent;
+            document.querySelector('.prompt-modal-overlay').classList.add('active');
+        });
+    });
+    overlay.addEventListener('click',function(e){if(e.target===overlay)closePromptModal();});
+}
+function closePromptModal(){document.querySelector('.prompt-modal-overlay').classList.remove('active');}
+
+/* ===== Init ===== */
+document.addEventListener('DOMContentLoaded',function(){
+    initTheme();initScrollAnimation();initAutoplayVideos();initPromptModal();
+});
+</script>
+</body>
+</html>
