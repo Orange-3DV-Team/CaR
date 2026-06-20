@@ -11,7 +11,24 @@
 
 ---
 
-![Teaser](assets/teaser.png)
+<table>
+<tr>
+<td align="center"><b>I2V — Camera</b></td>
+<td align="center"><b>V2V — History Extension</b></td>
+</tr>
+<tr>
+<td><video src="assets/videos/i2v_camera.mp4" width="100%" autoplay loop muted playsinline></video></td>
+<td><video src="assets/videos/v2v_extension.mp4" width="100%" autoplay loop muted playsinline></video></td>
+</tr>
+<tr>
+<td align="center"><b>I2V — Action</b></td>
+<td align="center"><b>Hard-cut</b></td>
+</tr>
+<tr>
+<td><video src="assets/videos/i2v_action.mp4" width="100%" autoplay loop muted playsinline></video></td>
+<td><video src="assets/videos/hard_cut.mp4" width="100%" autoplay loop muted playsinline></video></td>
+</tr>
+</table>
 
 ---
 
