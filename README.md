@@ -18,18 +18,20 @@
 <td align="center"><b>V2V — History Extension</b></td>
 </tr>
 <tr>
-<td><video src="assets/videos/i2v_camera.mp4" width="100%" autoplay loop muted playsinline></video></td>
-<td><video src="assets/videos/v2v_extension.mp4" width="100%" autoplay loop muted playsinline></video></td>
+<td><a href="https://github.com/Orange-3DV-Team/CaR/blob/homepage/assets/videos/i2v_camera.mp4"><img src="assets/thumb_i2v_camera.jpg" width="100%"/></a></td>
+<td><a href="https://github.com/Orange-3DV-Team/CaR/blob/homepage/assets/videos/v2v_extension.mp4"><img src="assets/thumb_v2v.jpg" width="100%"/></a></td>
 </tr>
 <tr>
 <td align="center"><b>I2V — Action</b></td>
 <td align="center"><b>Hard-cut</b></td>
 </tr>
 <tr>
-<td><video src="assets/videos/i2v_action.mp4" width="100%" autoplay loop muted playsinline></video></td>
-<td><video src="assets/videos/hard_cut.mp4" width="100%" autoplay loop muted playsinline></video></td>
+<td><a href="https://github.com/Orange-3DV-Team/CaR/blob/homepage/assets/videos/i2v_action.mp4"><img src="assets/thumb_i2v_action.jpg" width="100%"/></a></td>
+<td><a href="https://github.com/Orange-3DV-Team/CaR/blob/homepage/assets/videos/hard_cut.mp4"><img src="assets/thumb_hard_cut.jpg" width="100%"/></a></td>
 </tr>
 </table>
+
+<p align="center"><i>Click to play video</i></p>
 
 ---
 
