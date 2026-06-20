@@ -11,11 +11,25 @@
 
 ---
 
-## Overview
+![Teaser](assets/teaser.png)
 
-Video world models hold promise for simulating interactive environments, yet maintaining consistent long-term memory across complex camera trajectories remains a critical challenge. Existing methods typically rely on computationally expensive context scaling or rigid heuristic retrieval mechanisms, which lacks generalization to varying camera trajectories and environments.
+---
 
-We propose **CaR** (**C**ompression **a**nd **R**etrieval), an attention-driven implicit memory retrieval mechanism. By injecting viewpoint information via **Relative Pose Encoding**, the model performs flexible memory retrieval through the attention mechanism — no handcrafted rules needed. We further introduce a lightweight dual-branch **Context Compression** network and construct **SceneFly**, a large-scale synthetic dataset for training and evaluating long-horizon video world models.
+## Abstract
+
+Video world models hold promise for simulating interactive environments, yet maintaining consistent long-term memory across complex camera trajectories remains a critical challenge. Existing methods typically rely on computationally expensive context scaling or rigid heuristic retrieval mechanisms, which lacks generalization to varying camera trajectories and environments. In this paper, we propose **CaR** (**C**ompression **a**nd **R**etrieval), an attention-driven implicit memory retrieval mechanism to overcome these limitations. By injecting viewpoint information via positional encoding, our method performs flexible memory retrieval through attention computation. To efficiently process extended contexts with minimal computational overhead, we further introduce a lightweight context compression network. Furthermore, we construct **SceneFly**, a large-scale synthetic dataset featuring realistic camera trajectories and frame-level annotations to train and evaluate long-horizon video world models. Extensive experiments demonstrate that our approach achieves state-of-the-art results on established benchmarks and exhibits strong generalization to open-domain scenes.
+
+---
+
+## Method
+
+![Motivation](assets/motivation.png)
+
+**Comparison of Memory Paradigms.** (1) Scaling up the context window is computationally prohibitive. (2) Explicit retrieval relies on hand-crafted heuristic rules, severely restricting generalization. (3) Our implicit retrieval is attention-driven, performing retrieval directly within the global context.
+
+![Pipeline](assets/pipeline.png)
+
+A dual-branch compression network converts the historical video into compact context tokens. The context, an uncompressed sink frame, and noisy target tokens are then processed by two parallel attention branches: standard self-attention preserves the pretrained video prior, while **Retrieval Attention** uses relative camera poses to retrieve relevant history and control the target viewpoint.
 
 ---
 
@@ -32,21 +46,6 @@ A dual-branch encoder (coarse path + detail path) dramatically reduces context t
 **3. Flexible Viewpoint Switching & Camera Hard Cut**
 
 Supports fully discontinuous camera trajectory transitions (hard cuts), where the target viewpoint is arbitrarily distant from the input context. The model synthesizes scene-consistent videos by retrieving purely from long-term memory.
-
----
-
-## Results
-
-CaR achieves state-of-the-art results on both **Video Extension** and **Scene Revisiting** tasks, outperforming full-context and explicit-retrieval baselines across the SceneFly and SpatialVid benchmarks.
-
-| Method | SceneFly PSNR↑ | SceneFly SSIM↑ | SpatialVid PSNR↑ | SpatialVid SSIM↑ |
-|--------|:--------------:|:--------------:|:----------------:|:----------------:|
-| Lingbot | 15.63 | 0.470 | 16.11 | 0.568 |
-| CaM | 19.39 | 0.584 | 18.88 | 0.621 |
-| HyDRA | 20.38 | 0.610 | 19.90 | 0.648 |
-| **CaR (Ours)** | **21.23** | **0.672** | **20.77** | **0.699** |
-
-*Scene Revisiting task results shown above.*
 
 ---
 
