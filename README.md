@@ -36,10 +36,14 @@ https://github.com/user-attachments/assets/0db2cf63-6f41-4bc9-9844-785e63950b31
 <tr>
 <td>
 
-https://github.com/user-attachments/assets/ba4f88d5-d3b8-4ed7-8c9b-83dc2cb371cc
+https://github.com/user-attachments/assets/dd8ae154-1ffe-4d76-97ca-3d3dbb7d0ae5
 
 </td>
-<td><img src="assets/thumb_hard_cut.jpg" width="100%"/></td>
+<td>
+
+https://github.com/user-attachments/assets/055d5b61-a5cd-402f-bd80-7e5bde438767
+
+</td>
 </tr>
 </table>
 
