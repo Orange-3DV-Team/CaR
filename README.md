@@ -12,26 +12,13 @@
 
 ---
 
-<table>
-<tr>
-<td align="center"><b>I2V — Camera</b></td>
-<td align="center"><b>V2V — History Extension</b></td>
-</tr>
-<tr>
-<td><a href="https://github.com/Orange-3DV-Team/CaR/blob/homepage/assets/videos/i2v_camera.mp4"><img src="assets/thumb_i2v_camera.jpg" width="100%"/></a></td>
-<td><a href="https://github.com/Orange-3DV-Team/CaR/blob/homepage/assets/videos/v2v_extension.mp4"><img src="assets/thumb_v2v.jpg" width="100%"/></a></td>
-</tr>
-<tr>
-<td align="center"><b>I2V — Action</b></td>
-<td align="center"><b>Hard-cut</b></td>
-</tr>
-<tr>
-<td><a href="https://github.com/Orange-3DV-Team/CaR/blob/homepage/assets/videos/i2v_action.mp4"><img src="assets/thumb_i2v_action.jpg" width="100%"/></a></td>
-<td><a href="https://github.com/Orange-3DV-Team/CaR/blob/homepage/assets/videos/hard_cut.mp4"><img src="assets/thumb_hard_cut.jpg" width="100%"/></a></td>
-</tr>
-</table>
+<p align="center">
+  <img src="assets/teaser.png" width="100%"/>
+</p>
 
-<p align="center"><i>Click to play video</i></p>
+<p align="center">
+  🎬 <b><a href="https://orange-3dv-team.github.io/CaR/">Project Page</a></b> — watch full video demos
+</p>
 
 ---
 
