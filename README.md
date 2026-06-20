@@ -36,12 +36,12 @@ https://github.com/user-attachments/assets/0db2cf63-6f41-4bc9-9844-785e63950b31
 <tr>
 <td>
 
-https://github.com/user-attachments/assets/dd8ae154-1ffe-4d76-97ca-3d3dbb7d0ae5
+https://github.com/user-attachments/assets/1800c000-edb9-4d0b-8051-67094f8b38d6
 
 </td>
 <td>
 
-https://github.com/user-attachments/assets/055d5b61-a5cd-402f-bd80-7e5bde438767
+https://github.com/user-attachments/assets/0183c0ab-1801-4c65-8ebf-4264ba9334db
 
 </td>
 </tr>
