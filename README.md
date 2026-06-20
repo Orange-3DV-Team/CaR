@@ -1,6 +1,6 @@
-# CaR: Compression and Retrieval
+# CaR
 
-### Implicit Memory Retrieval for Video World Models
+### Compression and Retrieval: Implicit Memory Retrieval for Video World Models
 
 **Zhan Peng<sup>1</sup>, Jie Ma<sup>2</sup>, Huiqiang Sun<sup>1</sup>, Chong Gao<sup>3</sup>, Zhijie Xue<sup>1</sup>, Zhiyu Pan<sup>1</sup>, Zhiguo Cao<sup>1\*</sup>, Jun Liang<sup>2</sup>, Jing Li<sup>2</sup>**
 
