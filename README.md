@@ -40,29 +40,9 @@ Video world models hold promise for simulating interactive environments, yet mai
 
 ## Method
 
-![Motivation](assets/motivation.png)
-
-**Comparison of Memory Paradigms.** (1) Scaling up the context window is computationally prohibitive. (2) Explicit retrieval relies on hand-crafted heuristic rules, severely restricting generalization. (3) Our implicit retrieval is attention-driven, performing retrieval directly within the global context.
-
 ![Pipeline](assets/pipeline.png)
 
 A dual-branch compression network converts the historical video into compact context tokens. The context, an uncompressed sink frame, and noisy target tokens are then processed by two parallel attention branches: standard self-attention preserves the pretrained video prior, while **Retrieval Attention** uses relative camera poses to retrieve relevant history and control the target viewpoint.
-
----
-
-## Key Contributions
-
-**1. Implicit Memory Retrieval via Retrieval Attention**
-
-A zero-initialized Retrieval Attention branch runs in parallel with standard self-attention. Relative Pose Encoding injects relative camera viewpoints into attention, so the model automatically suppresses irrelevant history and amplifies geometrically similar viewpoints — enabling implicit retrieval without explicit frame selection.
-
-**2. Context Compression**
-
-A dual-branch encoder (coarse path + detail path) dramatically reduces context token count, making global attention over the full history computationally affordable without discarding retrieval-relevant evidence.
-
-**3. Flexible Viewpoint Switching & Camera Hard Cut**
-
-Supports fully discontinuous camera trajectory transitions (hard cuts), where the target viewpoint is arbitrarily distant from the input context. The model synthesizes scene-consistent videos by retrieving purely from long-term memory.
 
 ---
 
