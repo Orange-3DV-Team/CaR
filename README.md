@@ -1,14 +1,16 @@
-# CaR
+<div align="center">
 
-### Compression and Retrieval: Implicit Memory Retrieval for Video World Models
+# Compression and Retrieval: Implicit Memory Retrieval for Video World Models
 
-**Zhan Peng<sup>1,2</sup>, Jie Ma<sup>2</sup>, Huiqiang Sun<sup>1</sup>, Chong Gao<sup>2,3</sup>, Zhijie Xue<sup>1</sup>, Zhiyu Pan<sup>1</sup>, Zhiguo Cao<sup>1\*</sup>, Jun Liang<sup>2\*</sup>, Jing Li<sup>2</sup>**
+**[Zhan Peng](https://pzzz-cv.github.io/)<sup>1,2</sup>, Jie Ma<sup>2</sup>, Huiqiang Sun<sup>1</sup>, Chong Gao<sup>2,3</sup>, Zhijie Xue<sup>1</sup>, Zhiyu Pan<sup>1</sup>, Zhiguo Cao<sup>1\*</sup>, Jun Liang<sup>2\*</sup>, Jing Li<sup>2</sup>**
 
-<sup>1</sup>Huazhong University of Science and Technology &nbsp; <sup>2</sup>HUJING Digital Media & Entertainment Group &nbsp; <sup>3</sup>Sun Yat-sen University &nbsp; <sup>\*</sup>Corresponding author
+<sup>1</sup>Huazhong University of Science and Technology &nbsp; <sup>2</sup>HUJING Digital Media & Entertainment Group &nbsp; <sup>3</sup>Sun Yat-sen University
 
 [![Paper](https://img.shields.io/badge/Paper-arXiv-red)](https://arxiv.org/abs/XXXX.XXXXX)
 [![Project Page](https://img.shields.io/badge/Project-Page-blue)](https://orange-3dv-team.github.io/CaR/)
 ![Dataset](https://img.shields.io/badge/SceneFly_Dataset-Coming_Soon-lightgrey)
+
+</div>
 
 ---
 
