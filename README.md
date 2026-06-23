@@ -8,7 +8,7 @@
 <sup>1</sup>Huazhong University of Science and Technology &nbsp; <sup>2</sup>HUJING Digital Media & Entertainment Group\
 <sup>3</sup>Sun Yat-sen University
 
-[![Paper](https://img.shields.io/badge/Paper-arXiv-red)](https://arxiv.org/abs/XXXX.XXXXX)
+[![Paper](https://img.shields.io/badge/Paper-arXiv-red)](https://arxiv.org/abs/2606.23105)
 [![Project Page](https://img.shields.io/badge/Project-Page-blue)](https://orange-3dv-team.github.io/CaR/)
 ![Dataset](https://img.shields.io/badge/SceneFly_Dataset-Coming_Soon-lightgrey)
 
