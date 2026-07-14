@@ -59,8 +59,6 @@ Additional examples are available on the <a href="https://orange-3dv-team.github
 
 Video world models hold promise for simulating interactive environments, yet maintaining consistent long-term memory across complex camera trajectories remains a critical challenge. Existing methods typically rely on computationally expensive context scaling or rigid heuristic retrieval mechanisms, which lacks generalization to varying camera trajectories and environments. In this paper, we propose **CaR**, an attention-driven implicit memory retrieval mechanism to overcome these limitations. By injecting viewpoint information via positional encoding, our method performs flexible memory retrieval through attention computation. To efficiently process extended contexts with minimal computational overhead, we further introduce a lightweight context compression network. Furthermore, we construct **SceneFly**, a large-scale synthetic dataset featuring realistic camera trajectories and frame-level annotations to train and evaluate long-horizon video world models. Extensive experiments demonstrate that our approach achieves state-of-the-art results on established benchmarks and exhibits strong generalization to open-domain scenes.
 
-This repository provides the open-source inference code for **CaR on Wan2.2-TI2V-5B**, including demo scripts, example inputs, camera trajectories, and single-input inference utilities.
-
 ---
 
 ## TL;DR
@@ -90,14 +88,6 @@ This repository provides the open-source inference code for **CaR on Wan2.2-TI2V
 </div>
 
 A dual-branch compression network converts the historical video into compact context tokens. The context, an uncompressed sink frame, and noisy target tokens are then processed by two parallel attention branches: standard self-attention preserves the pretrained video prior, while **Retrieval Attention** uses relative camera poses to retrieve relevant history and control the target viewpoint.
-
-### Core Innovations
-
-| Innovation | Description |
-|---|---|
-| **Implicit Memory Retrieval** | The model retrieves memory directly in attention space instead of relying on hand-crafted retrieval rules. |
-| **Relative Pose Encoding** | Viewpoint information is injected into tokens so attention scores naturally encode camera similarity. |
-| **Context Compression** | Historical frames are converted into compact memory tokens, reducing overhead for long-horizon generation. |
 
 ---
 
@@ -156,11 +146,6 @@ Prepare the following checkpoints:
 - [Wan2.2-TI2V-5B base checkpoint](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B)
 - CaR checkpoint
 
-In the commands below:
-
-- `/path/to/Wan2.2-TI2V-5B` is the Wan2.2-TI2V-5B checkpoint directory.
-- `/path/to/car_checkpoint` is the CaR checkpoint directory or checkpoint file supported by `core/utils.py`.
-
 ---
 
 ## Demo
@@ -185,7 +170,7 @@ Generated videos are saved under `output/`. The default inputs, motion sequences
 
 ---
 
-## Single-input Inference
+## Inference
 
 Use `infer.sh` to generate one video from a single image or image folder plus a prompt. Pass the two checkpoint paths as arguments:
 
@@ -211,11 +196,7 @@ Mode selection in `infer.sh`:
 
 Camera trajectory files should follow the format of [`examples/i2v/camera/traj.json`](examples/i2v/camera/traj.json).
 
----
-
-## Calling `inference.py` Directly
-
-`demo.sh` and `infer.sh` are thin wrappers around `inference.py`. You can call it directly for custom inputs and settings.
+`demo.sh` and `infer.sh` are thin wrappers around `inference.py`. You can also call `inference.py` directly for custom inputs and settings.
 
 <details>
 <summary><b>Camera mode</b></summary>
