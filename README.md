@@ -22,9 +22,8 @@ Jing Li<sup>2</sup>
 
 [![Paper](https://img.shields.io/badge/Paper-arXiv-red)](https://arxiv.org/abs/2606.23105)
 [![Project Page](https://img.shields.io/badge/Project-Page-blue)](https://orange-3dv-team.github.io/CaR/)
-[![Code](https://img.shields.io/badge/Code-GitHub-black)](https://github.com/Orange-3DV-Team/CaR)
 ![Dataset](https://img.shields.io/badge/SceneFly_Dataset-Coming_Soon-lightgrey)
-[![Model](https://img.shields.io/badge/Base_Model-Wan2.2--TI2V--5B-orange)](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B)
+
 
 </div>
 
@@ -52,30 +51,6 @@ Jing Li<sup>2</sup>
 <p align="center">
 Additional examples are available on the <a href="https://orange-3dv-team.github.io/CaR/">project site</a>.
 </p>
-
----
-
-## Abstract
-
-Video world models hold promise for simulating interactive environments, yet maintaining consistent long-term memory across complex camera trajectories remains a critical challenge. Existing methods typically rely on computationally expensive context scaling or rigid heuristic retrieval mechanisms, which lacks generalization to varying camera trajectories and environments. In this paper, we propose **CaR**, an attention-driven implicit memory retrieval mechanism to overcome these limitations. By injecting viewpoint information via positional encoding, our method performs flexible memory retrieval through attention computation. To efficiently process extended contexts with minimal computational overhead, we further introduce a lightweight context compression network. Furthermore, we construct **SceneFly**, a large-scale synthetic dataset featuring realistic camera trajectories and frame-level annotations to train and evaluate long-horizon video world models. Extensive experiments demonstrate that our approach achieves state-of-the-art results on established benchmarks and exhibits strong generalization to open-domain scenes.
-
----
-
-## TL;DR
-
-**CaR** eliminates handcrafted retrieval rules by letting the model retrieve directly within the attention mechanism. A dedicated **Retrieval Attention** branch encodes each token with Relative Pose Encoding, so attention scores naturally reflect viewpoint similarity. Combined with efficient **context compression**, CaR enables consistent long-horizon generation and uniquely supports **Camera Hard Cut** transitions with fully discontinuous trajectories.
-
----
-
-## Motivation
-
-<div align="center">
-
-![Motivation](assets/fig1.png)
-
-</div>
-
-(1) Scaling up the context window to utilize the entire context as memory is computationally prohibitive, rendering it impractical. (2) Explicit retrieval relies on hand-crafted heuristic rules; the rigidity of these rules severely restricts the model's generalization across diverse camera trajectories and scenes. (3) In contrast, our implicit retrieval is an attention-driven mechanism where the model performs retrieval directly within the global context, yielding both greater flexibility and superior performance.
 
 ---
 
@@ -188,6 +163,9 @@ traj=""                                       # camera trajectory json; leave em
 output_dir="output/infer"
 ```
 
+> **Tip:** Action commands are comma-separated commands from `w`, `s`, `a`, `d`, `left`, `right`, `up`, and `down`. Use `+` to compose commands, for example `w+right`. In hardcut mode, prefix a command with `skip:` to advance the camera without rendering that segment.
+
+
 Mode selection in `infer.sh`:
 
 - If `traj` is set, camera mode is used and `motion` is ignored.
@@ -226,7 +204,7 @@ python inference.py \
   --car_checkpoint /path/to/car_checkpoint \
   --input_path examples/i2v/images/sample_001 \
   --motion_sequence "right,right,right,left,left,left" \
-  --step_size 4.0 \
+  --translation_step 4.0 \
   --rotate_angle 30.0 \
   --pitch_angle 15.0 \
   --output_dir output/action_demo/sample_001 \
@@ -247,7 +225,7 @@ python inference.py \
   --car_checkpoint /path/to/car_checkpoint \
   --input_path examples/i2v/images/sample_001 \
   --motion_sequence "w+up,down,skip:right,a,skip:left,w" \
-  --step_size 4.0 \
+  --translation_step 4.0 \
   --rotate_angle 30.0 \
   --pitch_angle 15.0 \
   --output_dir output/hardcut_demo/sample_001 \
@@ -269,7 +247,7 @@ python inference.py \
   --input_path examples/continue/sample_001/context_video.mp4 \
   --context_poses examples/continue/sample_001/context_poses.json \
   --motion_sequence "d,left" \
-  --step_size 4.0 \
+  --translation_step 4.0 \
   --rotate_angle 30.0 \
   --pitch_angle 15.0 \
   --output_dir output/continue_demo/sample_001 \
@@ -281,28 +259,6 @@ python inference.py \
 </details>
 
 ---
-
-## Inputs
-
-- **Image input:** `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`
-- **Video input:** `.mp4`, `.avi`, `.mov`, `.mkv`, `.webm`
-- **Image-folder input:** a directory containing sorted image files
-- **Pose input:** `.json`, `.npy`, or `.npz`
-
-Pose files should contain camera-to-world matrices with shape `[N, 3, 4]` or `[N, 4, 4]`. For JSON files, use:
-
-```json
-{
-  "poses": [
-    [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]]
-  ]
-}
-```
-
-Action commands are comma-separated commands from `w`, `s`, `a`, `d`, `left`, `right`, `up`, and `down`. Composite commands are joined by `+`, for example `w+right`. In hardcut mode, prefix a command with `skip:` to advance the camera without rendering that segment.
-
----
-
 ## Project Layout
 
 ```text
@@ -340,9 +296,9 @@ CaR/
 
 ```bibtex
 @article{peng2026car,
-  title   = {Compression and Retrieval: Implicit Memory Retrieval for Video World Models},
-  author  = {Peng, Zhan and others},
-  journal = {arXiv preprint arXiv:2606.23105},
-  year    = {2026}
+    title={Compression and Retrieval: Implicit Memory Retrieval for Video World Models},
+    author={Peng, Zhan and Ma, Jie and Sun, Huiqiang and Gao, Chong and Xue, Zhijie and Pan, Zhiyu and Cao, Zhiguo and Liang, Jun and Li, Jing},
+    journal={arXiv preprint arXiv:2606.23105},
+    year={2026}
 }
 ```

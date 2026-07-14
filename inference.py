@@ -75,7 +75,7 @@ def rotation_matrix_x(angle_deg):
     return np.array([[1, 0, 0], [0, c, -s], [0, s, c]], dtype=np.float64)
 
 
-def build_segment_poses_relative(instruction, frame_num, step_size,
+def build_segment_poses_relative(instruction, frame_num, translation_step,
                                   rotate_angle, pitch_angle=20.0):
     """Build relative c2w poses (first frame = identity) for one WASD instruction.
 
@@ -94,13 +94,13 @@ def build_segment_poses_relative(instruction, frame_num, step_size,
 
     for base in bases:
         if base == 'w':
-            translation_end = translation_end + cam_z * step_size
+            translation_end = translation_end + cam_z * translation_step
         elif base == 's':
-            translation_end = translation_end - cam_z * step_size
+            translation_end = translation_end - cam_z * translation_step
         elif base == 'a':
-            translation_end = translation_end - cam_x * step_size
+            translation_end = translation_end - cam_x * translation_step
         elif base == 'd':
-            translation_end = translation_end + cam_x * step_size
+            translation_end = translation_end + cam_x * translation_step
         elif base == 'left':
             rotation_end = rotation_end @ rotation_matrix_y(-rotate_angle)
         elif base == 'right':
@@ -939,7 +939,7 @@ def run_action_or_hardcut_mode(args, ctx):
 
         ref_c2w = current_c2w.copy()
         rel = build_segment_poses_relative(
-            instr, args.frame_num, args.step_size,
+            instr, args.frame_num, args.translation_step,
             args.rotate_angle, pitch_angle=args.pitch_angle,
         )
         abs_c2ws = relative_to_absolute(rel, ref_c2w)
@@ -1048,7 +1048,7 @@ def run_continue_mode(args, ctx):
 
         ref_c2w = current_c2w.copy()
         rel = build_segment_poses_relative(
-            instr, args.frame_num, args.step_size,
+            instr, args.frame_num, args.translation_step,
             args.rotate_angle, pitch_angle=args.pitch_angle,
         )
         abs_c2ws = relative_to_absolute(rel, ref_c2w)
@@ -1204,7 +1204,8 @@ def parse_args():
                    help='Comma-separated WASD commands. Required for action/hardcut/continue. '
                         'Use "skip:cmd" for hard-cut transitions in hardcut mode. '
                         'Composite commands joined by "+", e.g. "right+down".')
-    p.add_argument('--step_size', type=float, default=4.0)
+    p.add_argument('--translation_step', type=float, default=4.0,
+                   help='Translation magnitude for each action command.')
     p.add_argument('--rotate_angle', type=float, default=30.0)
     p.add_argument('--pitch_angle', type=float, default=15.0)
 

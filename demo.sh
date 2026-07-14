@@ -95,7 +95,7 @@ for d in "${images_dir}"/sample_*/; do
                 --car_checkpoint "${car_checkpoint}" \
                 --input_path "${images_dir}/${sample}" \
                 --motion_sequence "${motion}" \
-                --step_size 4.0 \
+                --translation_step 4.0 \
                 --rotate_angle 30.0 \
                 --pitch_angle 15.0 \
                 --output_dir "${output_dir}" \
@@ -122,7 +122,7 @@ for d in "${images_dir}"/sample_*/; do
                 --input_path "${images_dir}/${sample}/context_video.mp4" \
                 --context_poses "${images_dir}/${sample}/context_poses.json" \
                 --motion_sequence "${motion}" \
-                --step_size 4.0 \
+                --translation_step 4.0 \
                 --rotate_angle 30.0 \
                 --pitch_angle 15.0 \
                 --output_dir "${output_dir}" \
