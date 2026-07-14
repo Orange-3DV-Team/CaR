@@ -1,16 +1,30 @@
 <div align="center">
 
-# CaR: Compression and Retrieval — Implicit Memory Retrieval for Video World Models
+# CaR
 
-<p>
-Zhan Peng &nbsp;·&nbsp; et al.<br>
-<sub>Huazhong University of Science and Technology &nbsp;·&nbsp; HUJING Digital Media &nbsp;·&nbsp; Sun Yat-sen University</sub>
-</p>
+## Compression and Retrieval: Implicit Memory Retrieval for Video World Models
 
-[![Paper](https://img.shields.io/badge/Paper-arXiv-red.svg)](https://arxiv.org/abs/2606.23105)
-[![Project Page](https://img.shields.io/badge/Project-Page-blue.svg)](https://orange-3dv-team.github.io/CaR/)
-[![Dataset](https://img.shields.io/badge/SceneFly_Dataset-Coming_Soon-lightgrey.svg)](https://orange-3dv-team.github.io/CaR/)
-[![Model](https://img.shields.io/badge/Base_Model-Wan2.2--TI2V--5B-orange.svg)](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B)
+<a href="https://pzzz-cv.github.io/">Zhan Peng</a><sup>1,2</sup>,
+Jie Ma<sup>2</sup>,
+Huiqiang Sun<sup>1</sup>,
+Chong Gao<sup>2,3</sup>,
+Zhijie Xue<sup>1</sup>,
+Zhiyu Pan<sup>1</sup>,
+Zhiguo Cao<sup>1*</sup>,
+Jun Liang<sup>2*</sup>,
+Jing Li<sup>2</sup>
+
+<sup>1</sup>Huazhong University of Science and Technology &nbsp;
+<sup>2</sup>HUJING Digital Media & Entertainment Group &nbsp;
+<sup>3</sup>Sun Yat-sen University
+
+<sup>*</sup>Corresponding author
+
+[![Paper](https://img.shields.io/badge/Paper-arXiv-red)](https://arxiv.org/abs/2606.23105)
+[![Project Page](https://img.shields.io/badge/Project-Page-blue)](https://orange-3dv-team.github.io/CaR/)
+[![Code](https://img.shields.io/badge/Code-GitHub-black)](https://github.com/Orange-3DV-Team/CaR)
+![Dataset](https://img.shields.io/badge/SceneFly_Dataset-Coming_Soon-lightgrey)
+[![Model](https://img.shields.io/badge/Base_Model-Wan2.2--TI2V--5B-orange)](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B)
 
 </div>
 
@@ -31,45 +45,80 @@ Zhan Peng &nbsp;·&nbsp; et al.<br>
 </tr>
 <tr>
 <td align="center"><video src="assets/open/i2v/sample_010/final_video_indicator.mp4" controls muted loop width="420"></video></td>
-<td align="center"><video src="assets/demo/camera_motion_demo_opendomain_27.mp4" controls muted loop width="420"></video></td>
+<td align="center"><video src="assets/demo/camera_motion_demo_opendomain_32.mp4" controls muted loop width="420"></video></td>
 </tr>
 </table>
 
-<p align="center">🎬 More examples on the <a href="https://orange-3dv-team.github.io/CaR/">project page</a>.</p>
+<p align="center">
+Additional examples are available on the <a href="https://orange-3dv-team.github.io/CaR/">project site</a>.
+</p>
 
 ---
 
-## Overview
+## Abstract
 
-**CaR** is a memory mechanism for video world models that maintains long-term
-consistency during complex camera movements.
+Video world models hold promise for simulating interactive environments, yet maintaining consistent long-term memory across complex camera trajectories remains a critical challenge. Existing methods typically rely on computationally expensive context scaling or rigid heuristic retrieval mechanisms, which lacks generalization to varying camera trajectories and environments. In this paper, we propose **CaR**, an attention-driven implicit memory retrieval mechanism to overcome these limitations. By injecting viewpoint information via positional encoding, our method performs flexible memory retrieval through attention computation. To efficiently process extended contexts with minimal computational overhead, we further introduce a lightweight context compression network. Furthermore, we construct **SceneFly**, a large-scale synthetic dataset featuring realistic camera trajectories and frame-level annotations to train and evaluate long-horizon video world models. Extensive experiments demonstrate that our approach achieves state-of-the-art results on established benchmarks and exhibits strong generalization to open-domain scenes.
+
+This repository provides the open-source inference code for **CaR on Wan2.2-TI2V-5B**, including demo scripts, example inputs, camera trajectories, and single-input inference utilities.
+
+---
+
+## TL;DR
+
+**CaR** eliminates handcrafted retrieval rules by letting the model retrieve directly within the attention mechanism. A dedicated **Retrieval Attention** branch encodes each token with Relative Pose Encoding, so attention scores naturally reflect viewpoint similarity. Combined with efficient **context compression**, CaR enables consistent long-horizon generation and uniquely supports **Camera Hard Cut** transitions with fully discontinuous trajectories.
+
+---
+
+## Motivation
 
 <div align="center">
 
-![Pipeline](assets/pipeline.png)
+![Motivation](assets/fig1.png)
 
-</div> It compresses past footage into
-compact tokens via a **dual-branch compression network**, and uses
-**Retrieval Attention** — driven by relative camera poses — to recall the right
-context for the target viewpoint. Training and evaluation use **SceneFly**, a
-synthetic Unreal Engine 5 dataset (~1,000 minutes across 100 environments with
-precise camera parameters).
+</div>
 
-This repository provides open-source **inference** for CaR on top of
-**Wan2.2-TI2V-5B**, unifying four generation modes behind a single script.
+(1) Scaling up the context window to utilize the entire context as memory is computationally prohibitive, rendering it impractical. (2) Explicit retrieval relies on hand-crafted heuristic rules; the rigidity of these rules severely restricts the model's generalization across diverse camera trajectories and scenes. (3) In contrast, our implicit retrieval is an attention-driven mechanism where the model performs retrieval directly within the global context, yielding both greater flexibility and superior performance.
+
+---
+
+## Method Overview
+
+<div align="center">
+
+![Method Overview](assets/pipeline.png)
+
+</div>
+
+A dual-branch compression network converts the historical video into compact context tokens. The context, an uncompressed sink frame, and noisy target tokens are then processed by two parallel attention branches: standard self-attention preserves the pretrained video prior, while **Retrieval Attention** uses relative camera poses to retrieve relevant history and control the target viewpoint.
+
+### Core Innovations
+
+| Innovation | Description |
+|---|---|
+| **Implicit Memory Retrieval** | The model retrieves memory directly in attention space instead of relying on hand-crafted retrieval rules. |
+| **Relative Pose Encoding** | Viewpoint information is injected into tokens so attention scores naturally encode camera similarity. |
+| **Context Compression** | Historical frames are converted into compact memory tokens, reducing overhead for long-horizon generation. |
+
+---
+
+## SceneFly Dataset
+
+**SceneFly** is a large-scale synthetic dataset featuring realistic camera trajectories and frame-level annotations to train and evaluate long-horizon video world models. It is built in Unreal Engine 5 and contains roughly 1,000 minutes of footage across 100 varied environments, together with precise camera parameters for evaluating long-horizon camera-aware generation. The dataset will be released separately.
+
+---
+
+## Open-source Inference
+
+The inference code supports four modes through the same `inference.py` entry point:
 
 | Mode | Input | Description |
 |------|-------|-------------|
-| `camera`   | image + camera trajectory (`traj.json`) | I2V following an explicit camera pose trajectory |
-| `action`   | image + action commands (`--motion_sequence`) | I2V driven by WASD-style commands, generated autoregressively |
-| `hardcut`  | image + action commands with `skip:` prefixes | Multi-shot generation with hard cuts (`skip:` advances the camera without rendering) |
-| `continue` | video + `context_poses.json` + action commands | V2V continuation: extend an existing video with controlled segments |
+| `camera` | image + camera trajectory | I2V following an explicit camera pose sequence |
+| `action` | image + action commands | I2V driven by action commands, generated autoregressively |
+| `hardcut` | image + action commands with `skip:` | Multi-shot I2V with hard cuts; `skip:` advances camera state without rendering |
+| `continue` | video + context poses + action commands | V2V continuation from an existing context video |
 
-`action`, `hardcut`, and `continue` share the same action syntax (composite
-commands joined with `+`, e.g. `"w+right"`) and additionally produce a
-`final_ui.mp4` with a keyboard + mouse-sphere overlay so you can see which
-command produced which clip. The script auto-detects whether the input is an
-image, a video, or a folder of images.
+`action`, `hardcut`, and `continue` share the same action syntax. Commands are comma-separated and can be composed with `+`, for example `w+right`. A `skip:` prefix is used in hardcut mode to create discontinuous camera transitions.
 
 ---
 
@@ -81,94 +130,92 @@ image, a video, or a folder of images.
 - PyTorch 2.7.1
 - CUDA 12.8
 
-Other CUDA-enabled PyTorch builds may work if they are compatible with your driver and GPU.
+Other CUDA-enabled PyTorch versions may also work if they are compatible with your driver and GPU.
 
-### Steps
+### Environment
 
 ```bash
-# 1. Create the environment
 conda create -n car python=3.10
 conda activate car
+```
 
-# 2. Clone the repository
+### Install CaR
+
+```bash
 git clone https://github.com/Orange-3DV-Team/CaR.git
 cd CaR
 
-# 3. Install PyTorch matching your CUDA (example: CUDA 12.8)
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
-
-# 4. Install the remaining dependencies
 pip install -r requirements.txt
 ```
 
 ### Checkpoints
 
-Prepare the following, then reference their paths when running:
+Prepare the following checkpoints:
 
-- **Base model** — [Wan2.2-TI2V-5B](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B):
+- [Wan2.2-TI2V-5B base checkpoint](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B)
+- CaR checkpoint
 
-  ```bash
-  huggingface-cli download Wan-AI/Wan2.2-TI2V-5B --local-dir /path/to/Wan2.2-TI2V-5B
-  ```
+In the commands below:
 
-- **CaR checkpoint** — the trained memory-encoder + camera-control weights on top
-  of the base model. It can be a directory containing `model.safetensors`, or a
-  single `.safetensors` / `.pt` / `.pth` / `.bin` file supported by `core/utils.py`.
-
-In the commands below, `wan22_ckpt` points to the Wan2.2-TI2V-5B directory and
-`car_checkpoint` points to the CaR checkpoint.
+- `/path/to/Wan2.2-TI2V-5B` is the Wan2.2-TI2V-5B checkpoint directory.
+- `/path/to/car_checkpoint` is the CaR checkpoint directory or checkpoint file supported by `core/utils.py`.
 
 ---
 
 ## Demo
 
-`demo.sh` runs every `sample_*` folder for a given mode. Pass the two checkpoint
-paths after the mode; results are written under `output/<mode>_demo/`.
+`demo.sh` runs all `sample_*` examples for one mode. Pass the Wan2.2 checkpoint path and CaR checkpoint path after the mode:
 
 ```bash
-bash demo.sh camera   /path/to/Wan2.2-TI2V-5B /path/to/car_checkpoint  # explicit camera pose trajectory
-bash demo.sh action   /path/to/Wan2.2-TI2V-5B /path/to/car_checkpoint  # WASD-style action commands
-bash demo.sh hardcut  /path/to/Wan2.2-TI2V-5B /path/to/car_checkpoint  # multi-shot with skip: hard cuts
-bash demo.sh continue /path/to/Wan2.2-TI2V-5B /path/to/car_checkpoint  # V2V continuation from a context video
+# I2V with an explicit camera pose trajectory
+bash demo.sh camera   /path/to/Wan2.2-TI2V-5B /path/to/car_checkpoint
+
+# I2V driven by action commands
+bash demo.sh action   /path/to/Wan2.2-TI2V-5B /path/to/car_checkpoint
+
+# Multi-shot I2V with action commands and skip: hard cuts
+bash demo.sh hardcut  /path/to/Wan2.2-TI2V-5B /path/to/car_checkpoint
+
+# V2V continuation from a context video
+bash demo.sh continue /path/to/Wan2.2-TI2V-5B /path/to/car_checkpoint
 ```
 
-The default motion sequences and inputs for each mode live at the top of
-`demo.sh` and can be edited there.
+Generated videos are saved under `output/`. The default inputs, motion sequences, and generation settings are defined near the top of `demo.sh`.
 
 ---
 
-## Inference on a Single Input
+## Single-input Inference
 
-Use `infer.sh` to generate one video from a single image and prompt. Pass the two
-checkpoint paths as arguments, and edit `image` / `prompt` / `motion` / `traj` at
-the top of `infer.sh` to change the inputs.
+Use `infer.sh` to generate one video from a single image or image folder plus a prompt. Pass the two checkpoint paths as arguments:
 
 ```bash
 bash infer.sh /path/to/Wan2.2-TI2V-5B /path/to/car_checkpoint
 ```
 
-The editable inputs at the top of `infer.sh`:
+Edit the input fields near the top of `infer.sh`:
 
 ```bash
 image="examples/i2v/images/sample_001"      # image file or folder of images
 prompt=""                                    # text prompt; empty -> use prompt.txt next to input
 motion="w+up,down,skip:right,a,skip:left,w"  # action commands; "skip:" inserts a hard cut
 traj=""                                       # camera trajectory json; leave empty to use motion
+output_dir="output/infer"
 ```
 
-**How the mode is selected:**
+Mode selection in `infer.sh`:
 
-- **Motion-driven (default):** the video follows the `motion` sequence. If `motion`
-  contains any `skip:` command, hardcut mode is used; otherwise action mode is used.
-- **Camera trajectory:** set `traj` to a camera pose file (format like
-  [`examples/i2v/camera/traj.json`](examples/i2v/camera/traj.json)). When `traj` is
-  set, the camera trajectory is followed automatically and `motion` is ignored.
+- If `traj` is set, camera mode is used and `motion` is ignored.
+- If `traj` is empty and `motion` contains `skip:`, hardcut mode is used.
+- Otherwise, action mode is used.
 
-Output is saved under `output_dir` (default `output/infer/`).
+Camera trajectory files should follow the format of [`examples/i2v/camera/traj.json`](examples/i2v/camera/traj.json).
 
-### Running `inference.py` directly
+---
 
-`infer.sh` is a thin wrapper around `inference.py`; call it directly for full control.
+## Calling `inference.py` Directly
+
+`demo.sh` and `infer.sh` are thin wrappers around `inference.py`. You can call it directly for custom inputs and settings.
 
 <details>
 <summary><b>Camera mode</b></summary>
@@ -185,6 +232,7 @@ python inference.py \
   --sampling_steps 50 --guide_scale 3.0 \
   --seed 0
 ```
+
 </details>
 
 <details>
@@ -205,6 +253,7 @@ python inference.py \
   --sampling_steps 50 --guide_scale 3.0 \
   --seed 0
 ```
+
 </details>
 
 <details>
@@ -225,6 +274,7 @@ python inference.py \
   --sampling_steps 50 --guide_scale 3.0 \
   --seed 0
 ```
+
 </details>
 
 <details>
@@ -246,36 +296,66 @@ python inference.py \
   --sampling_steps 50 --guide_scale 3.0 \
   --seed 0
 ```
+
 </details>
 
 ---
 
 ## Inputs
 
+- **Image input:** `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`
+- **Video input:** `.mp4`, `.avi`, `.mov`, `.mkv`, `.webm`
+- **Image-folder input:** a directory containing sorted image files
+- **Pose input:** `.json`, `.npy`, or `.npz`
 
-- **Action commands** (`--motion_sequence`): comma-separated commands from
-  `w, s, a, d, left, right, up, down`. Composite commands joined by `+` (e.g.
-  `"w+right"`) apply both at once. Prefix with `skip:` (hardcut mode) to
-  advance the camera without rendering that segment.
+Pose files should contain camera-to-world matrices with shape `[N, 3, 4]` or `[N, 4, 4]`. For JSON files, use:
 
+```json
+{
+  "poses": [
+    [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]]
+  ]
+}
+```
 
+Action commands are comma-separated commands from `w`, `s`, `a`, `d`, `left`, `right`, `up`, and `down`. Composite commands are joined by `+`, for example `w+right`. In hardcut mode, prefix a command with `skip:` to advance the camera without rendering that segment.
+
+---
+
+## Project Layout
+
+```text
+CaR/
+├── inference.py              # Unified inference entry
+├── demo.sh                   # Batch demo script for camera/action/hardcut/continue
+├── infer.sh                  # Single-input inference script
+├── requirements.txt
+├── core/utils.py             # Checkpoint loading utilities
+├── wan/                      # Wan2.2-related model code
+├── assets/                   # README figures and demo media
+└── examples/
+    ├── gen_indicator_video.py
+    ├── generate_test_poses.py
+    ├── camera_extrinsics.json
+    ├── i2v/
+    │   ├── images/
+    │   └── camera/traj.json
+    └── continue/
+```
 
 ---
 
 ## Notes
 
-- **Coordinate system:** CV convention (x = right, y = down, z = forward).
-- **Default resolution:** 480×832, 81 frames (`4n+1`, friendly to the VAE temporal stride of 4).
-- Camera condition method `relray_absmap` and RoPE mode `rope+memrope` follow the trained checkpoint.
-- Memory and HR-frame conditioning are enabled by default; toggle with `--no_memory` / `--no_hr_frame`.
-- Segment files are named `segment_<idx>_<label>.mp4` for action/hardcut/continue
-  (label = the command that produced them) and `segment_<idx>.mp4` for camera mode.
+- Coordinate system: CV convention (`x = right`, `y = down`, `z = forward`).
+- Default resolution: 480×832 with 81 frames.
+- `camera_condition=relray_absmap` and `rope_mode=rope+memrope` follow the trained checkpoint.
+- Memory and HR-frame conditioning are enabled by default; use `--no_memory` or `--no_hr_frame` to disable them.
+- Segment files are named `segment_<idx>_<label>.mp4` for action/hardcut/continue and `segment_<idx>.mp4` for camera mode.
 
 ---
 
 ## Citation
-
-If you find CaR useful, please consider citing:
 
 ```bibtex
 @article{peng2026car,
