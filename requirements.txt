@@ -1,0 +1,14 @@
+diffusers>=0.36.0
+transformers
+einops>=0.8.2
+huggingface_hub>=0.36.2
+imageio
+imageio[ffmpeg]
+safetensors>=0.7.0
+Pillow
+numpy
+scipy
+tqdm
+easydict
+ftfy
+regex
