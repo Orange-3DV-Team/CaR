@@ -1,8 +1,6 @@
 <div align="center">
 
-# 🎬 CaR
-
-## Compression and Retrieval: Implicit Memory Retrieval for Video World Models
+# Compression and Retrieval: Implicit Memory Retrieval for Video World Models
 
 <a href="https://pzzz-cv.github.io/">Zhan Peng</a><sup>1,2</sup>,
 Jie Ma<sup>2</sup>,
