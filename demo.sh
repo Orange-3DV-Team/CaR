@@ -43,31 +43,32 @@ case "${mode}" in
     camera)
         poses=traj
         sampling_steps=50
-        images_dir="examples/i2v/images"
+        input_root="examples/i2v/images"
         ;;
     action)
         motion="right,right,right,left,left,left"
-        sampling_steps=30
-        images_dir="examples/i2v/images"
+        sampling_steps=50
+        input_root="examples/i2v/images"
         motion_tag=$(echo "${motion}" | sed 's/,/_/g; s/+/-/g; s/:/-/g')
         ;;
     hardcut)
         motion="w+up,down,skip:right,a,skip:left,w"
         sampling_steps=50
-        images_dir="examples/i2v/images"
+        input_root="examples/i2v/images"
         motion_tag=$(echo "${motion}" | sed 's/,/_/g; s/+/-/g; s/:/-/g')
         ;;
     continue)
         motion="d,left"
         sampling_steps=50
-        images_dir="examples/continue"
+        input_root="examples/continue"
         motion_tag=$(echo "${motion}" | sed 's/,/_/g; s/+/-/g; s/:/-/g')
         ;;
 esac
 
 # ==== Run all samples ================================================
-for d in "${images_dir}"/sample_*/; do
-    sample=$(basename "${d}")
+for d in "${input_root}"/sample_*/; do
+    input="${d%/}"
+    sample=$(basename "${input}")
     echo "===================================================="
     echo "[demo] mode=${mode}  sample=${sample}"
     echo "===================================================="
@@ -75,10 +76,9 @@ for d in "${images_dir}"/sample_*/; do
     case "${mode}" in
         camera)
             python inference.py \
-                --mode camera \
                 --checkpoint_dir "${wan22_ckpt}" \
                 --car_checkpoint "${car_checkpoint}" \
-                --input_path "${images_dir}/${sample}" \
+                --input_path "${input}" \
                 --target_poses "examples/i2v/camera/${poses}.json" \
                 --output_dir "output/camera_demo/${sample}_${poses}" \
                 --height ${height} --width ${width} --frame_num ${frame_num} \
@@ -90,10 +90,9 @@ for d in "${images_dir}"/sample_*/; do
             output_dir="output/${mode}_demo/${sample}/${motion_tag}"
 
             python inference.py \
-                --mode "${mode}" \
                 --checkpoint_dir "${wan22_ckpt}" \
                 --car_checkpoint "${car_checkpoint}" \
-                --input_path "${images_dir}/${sample}" \
+                --input_path "${input}" \
                 --motion_sequence "${motion}" \
                 --translation_step 4.0 \
                 --rotate_angle 30.0 \
@@ -116,11 +115,10 @@ for d in "${images_dir}"/sample_*/; do
             output_dir="output/continue_demo/${sample}/${motion_tag}"
 
             python inference.py \
-                --mode continue \
                 --checkpoint_dir "${wan22_ckpt}" \
                 --car_checkpoint "${car_checkpoint}" \
-                --input_path "${images_dir}/${sample}/context_video.mp4" \
-                --context_poses "${images_dir}/${sample}/context_poses.json" \
+                --input_path "${input}" \
+                --context_poses "${input}/context_poses.json" \
                 --motion_sequence "${motion}" \
                 --translation_step 4.0 \
                 --rotate_angle 30.0 \

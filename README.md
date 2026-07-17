@@ -22,7 +22,7 @@ Jing Li<sup>2</sup>
 
 [![Paper](https://img.shields.io/badge/Paper-arXiv-red)](https://arxiv.org/abs/2606.23105)
 [![Project Page](https://img.shields.io/badge/Project-Page-blue)](https://orange-3dv-team.github.io/CaR/)
-![Dataset](https://img.shields.io/badge/SceneFly_Dataset-Coming_Soon-lightgrey)
+[![Dataset](https://img.shields.io/badge/Dataset-SceneFly-yellow)](https://huggingface.co/datasets/Orange-3DV-Team/SceneFly)
 
 
 </div>
@@ -54,6 +54,18 @@ Additional examples are available on the <a href="https://orange-3dv-team.github
 
 ---
 
+## TODO
+
+- [x] Release inference code
+- [x] Release [CaR checkpoint](https://huggingface.co/Orange-3DV-Team/CaR/tree/main)
+- [x] Release partial [SceneFly dataset](https://huggingface.co/datasets/Orange-3DV-Team/SceneFly)
+- [ ] Release full SceneFly dataset
+- [ ] Release training code
+- [ ] Release few-step model
+
+
+---
+
 ## Method Overview
 
 <div align="center">
@@ -68,13 +80,13 @@ A dual-branch compression network converts the historical video into compact con
 
 ## SceneFly Dataset
 
-**SceneFly** is a large-scale synthetic dataset featuring realistic camera trajectories and frame-level annotations to train and evaluate long-horizon video world models. It is built in Unreal Engine 5 and contains roughly 1,000 minutes of footage across 100 varied environments, together with precise camera parameters for evaluating long-horizon camera-aware generation. The dataset will be released separately.
+**SceneFly** is a large-scale synthetic dataset featuring realistic camera trajectories and frame-level annotations to train and evaluate long-horizon video world models. It is built in Unreal Engine 5 and contains roughly 1,000 minutes of footage across 100 varied environments, together with precise camera parameters for evaluating long-horizon camera-aware generation. We currently release a partial version of SceneFly (about half of the full dataset) on [Hugging Face](https://huggingface.co/datasets/Orange-3DV-Team/SceneFly); the complete dataset will be provided in a future release.
 
 ---
 
 ## Open-source Inference
 
-The inference code supports four modes through the same `inference.py` entry point:
+The inference code automatically selects one of four modes from the provided inputs:
 
 | Mode | Input | Description |
 |------|-------|-------------|
@@ -83,7 +95,6 @@ The inference code supports four modes through the same `inference.py` entry poi
 | `hardcut` | image + action commands with `skip:` | Multi-shot I2V with hard cuts; `skip:` advances camera state without rendering |
 | `continue` | video + context poses + action commands | V2V continuation from an existing context video |
 
-`action`, `hardcut`, and `continue` share the same action syntax. Commands are comma-separated and can be composed with `+`, for example `w+right`. A `skip:` prefix is used in hardcut mode to create discontinuous camera transitions.
 
 ---
 
@@ -114,12 +125,18 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 pip install -r requirements.txt
 ```
 
+Flash Attention is recommended for efficient inference. Install a version compatible with your PyTorch/CUDA environment, for example:
+
+```bash
+pip install flash-attn --no-build-isolation
+```
+
 ### Checkpoints
 
 Prepare the following checkpoints:
 
 - [Wan2.2-TI2V-5B base checkpoint](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B)
-- CaR checkpoint
+- [CaR checkpoint](https://huggingface.co/Orange-3DV-Team/CaR/tree/main)
 
 ---
 
@@ -145,149 +162,73 @@ Generated videos are saved under `output/`. The default inputs, motion sequences
 
 ---
 
+## Input Format
+
+The recommended `input` is a **sample-level folder**:
+
+```text
+sample/
+├── context.png | context.mp4
+├── prompt.txt
+└── context_poses.json  # optional, used for video continuation
+```
+
+`context` can be an image or a video. `context_poses.json` is optional and is only needed when continuing from a video context.
+
+For camera-trajectory inference, set `traj` to a pose file such as:
+
+```bash
+traj="examples/i2v/camera/traj.json"
+```
+
+---
+
 ## Inference
 
-Use `infer.sh` to generate one video from a single image or image folder plus a prompt. Pass the two checkpoint paths as arguments:
+Edit `input`, `output_dir`, and generation parameters inside `infer.sh`, then run:
 
 ```bash
 bash infer.sh /path/to/Wan2.2-TI2V-5B /path/to/car_checkpoint
 ```
 
-Edit the input fields near the top of `infer.sh`:
+You can also run `inference.py` directly and append the needed arguments:
 
 ```bash
-image="examples/i2v/images/sample_001"      # image file or folder of images
-prompt=""                                    # text prompt; empty -> use prompt.txt next to input
-motion="w+up,down,skip:right,a,skip:left,w"  # action commands; "skip:" inserts a hard cut
-traj=""                                       # camera trajectory json; leave empty to use motion
-output_dir="output/infer"
+python inference.py \
+  --checkpoint_dir /path/to/Wan2.2-TI2V-5B \
+  --car_checkpoint /path/to/car_checkpoint \
+  --input_path examples/i2v/images/sample_001 \
+  --output_dir output/infer \
+  --prompt "" \
+  --motion_sequence "w+up,down,skip:right,a,skip:left,w" \
+  --target_poses examples/i2v/camera/traj.json \
+  --context_poses examples/continue/sample_001/context_poses.json \
+  --translation_step 4.0 \
+  --rotate_angle 30.0 \
+  --pitch_angle 15.0
 ```
+
+Prompt behavior:
+
+- With `--prompt "your prompt"`, the given text is used directly.
+- Without `--prompt`, `inference.py` reads `prompt.txt` from the input sample folder.
+
+
+`inference.py` automatically resolves sample folders: `context.png` is used for image samples, while `context.mp4` and `context_poses.json` are used for video continuation samples. It also automatically selects the mode:
+
+- `--target_poses` is set → **camera** mode
+- `--context_poses` is set, or input resolves to a video → **continue** mode
+- `--motion_sequence` contains `skip:` → **hardcut** mode
+- otherwise, `--motion_sequence` → **action** mode
 
 > **Tip:** Action commands are comma-separated commands from `w`, `s`, `a`, `d`, `left`, `right`, `up`, and `down`. Use `+` to compose commands, for example `w+right`. In hardcut mode, prefix a command with `skip:` to advance the camera without rendering that segment.
-
-
-Mode selection in `infer.sh`:
-
-- If `traj` is set, camera mode is used and `motion` is ignored.
-- If `traj` is empty and `motion` contains `skip:`, hardcut mode is used.
-- Otherwise, action mode is used.
-
-Camera trajectory files should follow the format of [`examples/i2v/camera/traj.json`](examples/i2v/camera/traj.json).
-
-`demo.sh` and `infer.sh` are thin wrappers around `inference.py`. You can also call `inference.py` directly for custom inputs and settings.
-
-<details>
-<summary><b>Camera mode</b></summary>
-
-```bash
-python inference.py \
-  --mode camera \
-  --checkpoint_dir /path/to/Wan2.2-TI2V-5B \
-  --car_checkpoint /path/to/car_checkpoint \
-  --input_path examples/i2v/images/sample_001 \
-  --target_poses examples/i2v/camera/traj.json \
-  --output_dir output/camera_demo/sample_001_traj \
-  --height 480 --width 832 --frame_num 81 \
-  --sampling_steps 50 --guide_scale 3.0 \
-  --seed 0
-```
-
-</details>
-
-<details>
-<summary><b>Action mode</b></summary>
-
-```bash
-python inference.py \
-  --mode action \
-  --checkpoint_dir /path/to/Wan2.2-TI2V-5B \
-  --car_checkpoint /path/to/car_checkpoint \
-  --input_path examples/i2v/images/sample_001 \
-  --motion_sequence "right,right,right,left,left,left" \
-  --translation_step 4.0 \
-  --rotate_angle 30.0 \
-  --pitch_angle 15.0 \
-  --output_dir output/action_demo/sample_001 \
-  --height 480 --width 832 --frame_num 81 \
-  --sampling_steps 50 --guide_scale 3.0 \
-  --seed 0
-```
-
-</details>
-
-<details>
-<summary><b>Hardcut mode</b></summary>
-
-```bash
-python inference.py \
-  --mode hardcut \
-  --checkpoint_dir /path/to/Wan2.2-TI2V-5B \
-  --car_checkpoint /path/to/car_checkpoint \
-  --input_path examples/i2v/images/sample_001 \
-  --motion_sequence "w+up,down,skip:right,a,skip:left,w" \
-  --translation_step 4.0 \
-  --rotate_angle 30.0 \
-  --pitch_angle 15.0 \
-  --output_dir output/hardcut_demo/sample_001 \
-  --height 480 --width 832 --frame_num 81 \
-  --sampling_steps 50 --guide_scale 3.0 \
-  --seed 0
-```
-
-</details>
-
-<details>
-<summary><b>Continue mode</b></summary>
-
-```bash
-python inference.py \
-  --mode continue \
-  --checkpoint_dir /path/to/Wan2.2-TI2V-5B \
-  --car_checkpoint /path/to/car_checkpoint \
-  --input_path examples/continue/sample_001/context_video.mp4 \
-  --context_poses examples/continue/sample_001/context_poses.json \
-  --motion_sequence "d,left" \
-  --translation_step 4.0 \
-  --rotate_angle 30.0 \
-  --pitch_angle 15.0 \
-  --output_dir output/continue_demo/sample_001 \
-  --height 480 --width 832 --frame_num 81 \
-  --sampling_steps 50 --guide_scale 3.0 \
-  --seed 0
-```
-
-</details>
-
----
-## Project Layout
-
-```text
-CaR/
-├── inference.py              # Unified inference entry
-├── demo.sh                   # Batch demo script for camera/action/hardcut/continue
-├── infer.sh                  # Single-input inference script
-├── requirements.txt
-├── core/utils.py             # Checkpoint loading utilities
-├── wan/                      # Wan2.2-related model code
-├── assets/                   # README figures and demo media
-└── examples/
-    ├── gen_indicator_video.py
-    ├── generate_test_poses.py
-    ├── camera_extrinsics.json
-    ├── i2v/
-    │   ├── images/
-    │   └── camera/traj.json
-    └── continue/
-```
 
 ---
 
 ## Notes
 
-- Coordinate system: CV convention (`x = right`, `y = down`, `z = forward`).
 - Default resolution: 480×832 with 81 frames.
 - `camera_condition=relray_absmap` and `rope_mode=rope+memrope` follow the trained checkpoint.
-- Memory and HR-frame conditioning are enabled by default; use `--no_memory` or `--no_hr_frame` to disable them.
 - Segment files are named `segment_<idx>_<label>.mp4` for action/hardcut/continue and `segment_<idx>.mp4` for camera mode.
 
 ---

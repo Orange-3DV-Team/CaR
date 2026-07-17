@@ -3,10 +3,10 @@ CaR: Unified Inference Script for Camera/Action/HardCut/Continue modes.
 
 Built on Wan2.2-TI2V-5B with UCPE camera control + Memory Compression Encoder.
 
-Four modes (--mode):
+Auto-inferred modes (optionally override with --mode):
   camera   : I2V with explicit camera pose sequence (one image -> one video)
-  action   : I2V with WASD action commands (autoregressive segments)
-  hardcut  : I2V with WASD commands + 'skip:' prefix for hard-cut transitions
+  action   : I2V with action commands (autoregressive segments)
+  hardcut  : I2V with action commands + 'skip:' prefix for hard-cut transitions
   continue : V2V continuation from a context video / image sequence
 
 Coordinate convention (CV): x=right, y=down, z=forward.
@@ -49,7 +49,7 @@ from wan.utils.fm_solvers import (
 )
 from wan.utils.utils import save_video, masks_like
 from wan.utils.adaptive_shift import compute_adaptive_shift
-from core.utils import guess_load_checkpoint
+from wan.utils.checkpoint import guess_load_checkpoint
 
 logging.basicConfig(
     level=logging.INFO,
@@ -694,9 +694,51 @@ def prepare_context(args, target_h, target_w):
     return pixels, kind, n_frames
 
 
+def normalize_optional_args(args):
+    for name in ('prompt', 'target_poses', 'context_poses', 'motion_sequence'):
+        if getattr(args, name) == '':
+            setattr(args, name, None)
+
+
+def resolve_input_sample(args):
+    input_path = args.input_path
+    if not os.path.isdir(input_path):
+        return
+    context_video = os.path.join(input_path, 'context.mp4')
+    image_file = os.path.join(input_path, 'context.png')
+    if os.path.exists(context_video):
+        args.input_path = context_video
+        if not args.context_poses:
+            context_poses = os.path.join(input_path, 'context_poses.json')
+            if os.path.exists(context_poses):
+                args.context_poses = context_poses
+    elif os.path.exists(image_file):
+        args.input_path = image_file
+
+
+def infer_mode(args, input_kind, n_frames):
+    if args.mode != 'auto':
+        return args.mode
+    if args.target_poses:
+        return 'camera'
+    if args.context_poses or input_kind == 'video' or n_frames > 1:
+        return 'continue'
+    if args.motion_sequence and 'skip:' in args.motion_sequence.lower():
+        return 'hardcut'
+    if args.motion_sequence:
+        return 'action'
+    raise AssertionError(
+        'Cannot infer mode automatically. Provide --target_poses for camera mode, '
+        '--context_poses with a video sample for continue mode, or --motion_sequence '
+        'for action/hardcut mode.'
+    )
+
+
 def validate_inputs(args):
+    normalize_optional_args(args)
+    resolve_input_sample(args)
+
     print("=" * 70)
-    print(f"[CaR] Mode: {args.mode}")
     print(f"[CaR] Input: {args.input_path}")
     print(f"[CaR] Output: {args.output_dir}")
 
@@ -725,13 +767,19 @@ def validate_inputs(args):
         raise ValueError(f"Unrecognized input format: {args.input_path}")
 
     print(f"[CaR] Input kind: {kind}, frames: {n_frames}")
+    requested_mode = args.mode
+    args.mode = infer_mode(args, kind, n_frames)
+    if requested_mode == 'auto':
+        print(f"[CaR] Mode: {args.mode} (auto)")
+    else:
+        print(f"[CaR] Mode: {args.mode}")
 
     if args.mode == 'camera':
         print("[CaR] camera mode: I2V with explicit camera pose sequence.")
         if n_frames != 1:
             raise AssertionError(
                 f"camera mode expects a single image input (got {n_frames} frames). "
-                f"Use --mode continue for video input."
+                f"Use a video/folder input with --context_poses for continue mode."
             )
         if not args.target_poses:
             raise AssertionError("camera mode requires --target_poses <file>.")
@@ -763,7 +811,7 @@ def validate_inputs(args):
             raise AssertionError("action mode requires --motion_sequence \"w,a,d,...\".")
         if 'skip:' in args.motion_sequence.lower():
             raise AssertionError(
-                "action mode does not allow 'skip:' commands. Use --mode hardcut for hard cuts."
+                "action mode does not allow 'skip:' commands; omit --mode to let auto mode select hardcut."
             )
         cmds = [c for c in args.motion_sequence.split(',') if c.strip()]
         print(f"[CaR] Parsed {len(cmds)} WASD commands: {cmds}")
@@ -803,7 +851,7 @@ def validate_inputs(args):
               f"Action commands: {len(cmds)}. Parsed: {cmds}")
 
     else:
-        raise ValueError(f"Unknown --mode: {args.mode}")
+        raise ValueError(f"Unknown mode: {args.mode}")
     print("=" * 70)
 
 
@@ -919,7 +967,7 @@ def run_action_or_hardcut_mode(args, ctx):
     raw_cmds = [c for c in args.motion_sequence.split(',') if c.strip()]
     instructions = [parse_instruction(c) for c in raw_cmds]
     if args.mode == 'action' and any(skip for _, skip in instructions):
-        raise AssertionError("action mode received 'skip:' command (use --mode hardcut).")
+        raise AssertionError("action mode received 'skip:' command; omit --mode to let auto mode select hardcut.")
 
     x_fov_t = torch.tensor([args.x_fov], device=device)
     xi_t = torch.tensor([args.xi], device=device)
@@ -1182,11 +1230,12 @@ def parse_args():
         description="CaR: Unified Camera/Action/HardCut/Continue Inference",
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    p.add_argument('--mode', required=True,
-                   choices=['camera', 'action', 'hardcut', 'continue'],
-                   help="camera   : I2V with explicit pose sequence\n"
-                        "action   : I2V with WASD action commands\n"
-                        "hardcut  : I2V with WASD + skip: for hard cuts\n"
+    p.add_argument('--mode', default='auto',
+                   choices=['auto', 'camera', 'action', 'hardcut', 'continue'],
+                   help="auto     : infer mode from inputs (default)\n"
+                        "camera   : I2V with explicit pose sequence\n"
+                        "action   : I2V with action commands\n"
+                        "hardcut  : I2V with action commands + skip: for hard cuts\n"
                         "continue : V2V continuation from context video")
     p.add_argument('--input_path', required=True,
                    help='Image (.png/.jpg/...) or video (.mp4/...) or folder of images.')
