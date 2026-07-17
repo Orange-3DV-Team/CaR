@@ -35,16 +35,32 @@ Jing Li<sup>2</sup>
 <td align="center"><b>V2V — History Extension</b></td>
 </tr>
 <tr>
-<td align="center"><video src="assets/demo/scene_exploration_camera.mp4" controls muted loop width="420"></video></td>
-<td align="center"><video src="assets/demo/history_extension.mp4" controls muted loop width="420"></video></td>
+<td>
+
+https://github.com/user-attachments/assets/dac27cf2-c7ee-42cf-88c8-e57a3e604d98
+
+</td>
+<td>
+
+https://github.com/user-attachments/assets/0db2cf63-6f41-4bc9-9844-785e63950b31
+
+</td>
 </tr>
 <tr>
 <td align="center"><b>I2V — Action</b></td>
 <td align="center"><b>Hard-cut</b></td>
 </tr>
 <tr>
-<td align="center"><video src="assets/open/i2v/sample_010/final_video_indicator.mp4" controls muted loop width="420"></video></td>
-<td align="center"><video src="assets/demo/camera_motion_demo_opendomain_32.mp4" controls muted loop width="420"></video></td>
+<td>
+
+https://github.com/user-attachments/assets/1800c000-edb9-4d0b-8051-67094f8b38d6
+
+</td>
+<td>
+
+https://github.com/user-attachments/assets/0183c0ab-1801-4c65-8ebf-4264ba9334db
+
+</td>
 </tr>
 </table>
 
