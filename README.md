@@ -1,6 +1,6 @@
 <div align="center">
 
-# CaR
+# 🎬 CaR
 
 ## Compression and Retrieval: Implicit Memory Retrieval for Video World Models
 
@@ -20,9 +20,11 @@ Jing Li<sup>2</sup>
 
 <sup>*</sup>Corresponding author
 
-[![Paper](https://img.shields.io/badge/Paper-arXiv-red)](https://arxiv.org/abs/2606.23105)
-[![Project Page](https://img.shields.io/badge/Project-Page-blue)](https://orange-3dv-team.github.io/CaR/)
-[![Dataset](https://img.shields.io/badge/Dataset-SceneFly-yellow)](https://huggingface.co/datasets/Orange-3DV-Team/SceneFly)
+[![Paper](https://img.shields.io/badge/Paper-arXiv-red?logo=arxiv)](https://arxiv.org/abs/2606.23105)
+[![Project Page](https://img.shields.io/badge/Project-Page-blue?logo=googlechrome&logoColor=white)](https://orange-3dv-team.github.io/CaR/)
+[![Code](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/Orange-3DV-Team/CaR)
+[![Model](https://img.shields.io/badge/🤗%20Model-CaR-orange)](https://huggingface.co/Orange-3DV-Team/CaR/tree/main)
+[![Dataset](https://img.shields.io/badge/🤗%20Dataset-SceneFly-yellow)](https://huggingface.co/datasets/Orange-3DV-Team/SceneFly)
 
 
 </div>
