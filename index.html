@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<!-- Local-preview helper only; remove before publishing. -->
 <title>CaR: Compression and Retrieval — Implicit Memory Retrieval for Video World Models</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={darkMode:'class'}</script>
@@ -180,14 +181,6 @@ html:not(.dark) .video-card:hover{box-shadow:0 12px 24px -8px rgba(0,0,0,.15)}
     </div>
 </section>
 
-<!-- ==================== ABSTRACT ==================== -->
-<section class="mb-20 section-animate">
-    <div class="mb-6"><h2 class="text-3xl font-bold text-white">Abstract</h2></div>
-    <div class="glow-border"><div class="glass rounded-2xl p-8 md:p-10">
-        <p class="text-gray-300 leading-relaxed text-[16px] text-justify">Video world models hold promise for simulating interactive environments, yet maintaining consistent long-term memory across complex camera trajectories remains a critical challenge. Existing methods typically rely on computationally expensive context scaling or rigid heuristic retrieval mechanisms, which lacks generalization to varying camera trajectories and environments. In this paper, we propose <strong class="gradient-term">CaR</strong>, an attention-driven implicit memory retrieval mechanism to overcome these limitations. By injecting viewpoint information via positional encoding, our method performs flexible memory retrieval through attention computation. To efficiently process extended contexts with minimal computational overhead, we further introduce a lightweight context compression network. Furthermore, we construct <strong class="gradient-term">SceneFly</strong>, a large-scale synthetic dataset featuring realistic camera trajectories and frame-level annotations to train and evaluate long-horizon video world models. Extensive experiments demonstrate that our approach achieves state-of-the-art results on established benchmarks and exhibits strong generalization to open-domain scenes.</p>
-    </div></div>
-</section>
-
 <!-- ==================== TL;DR ==================== -->
 <section class="mb-20 section-animate">
     <div class="glow-border pulse-glow"><div class="glass rounded-2xl p-8 relative">
@@ -196,6 +189,42 @@ html:not(.dark) .video-card:hover{box-shadow:0 12px 24px -8px rgba(0,0,0,.15)}
             <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-purple-400 uppercase tracking-wider mb-4"><i class="w-3 h-3" data-lucide="zap"></i>TL;DR</div>
             <p class="text-lg text-gray-300 leading-relaxed"><span class="gradient-term">CaR</span> eliminates handcrafted retrieval rules by letting the model retrieve directly within the attention mechanism. A dedicated <span class="font-semibold text-blue-400">Retrieval Attention</span> branch encodes each token with Relative Pose Encoding, so attention scores naturally reflect viewpoint similarity. Combined with efficient <span class="font-semibold text-purple-400">context compression</span>, CaR enables consistent long-horizon generation and uniquely supports <span class="font-semibold text-pink-400">Camera Hard Cut</span> transitions with fully discontinuous trajectories.</p>
         </div>
+    </div></div>
+</section>
+
+<!-- ==================== ABSTRACT ==================== -->
+<section class="mb-20 section-animate">
+    <div class="mb-6"><h2 class="text-3xl font-bold text-white">Abstract</h2></div>
+    <div class="glow-border"><div class="glass rounded-2xl p-8 md:p-10">
+        <p class="text-gray-300 leading-relaxed text-[16px] text-justify">Video world models hold promise for simulating interactive environments, yet maintaining consistent long-term memory across complex camera trajectories remains a critical challenge. Existing methods typically rely on computationally expensive context scaling or rigid heuristic retrieval mechanisms, which lacks generalization to varying camera trajectories and environments. In this paper, we propose <strong class="gradient-term">CaR</strong>, an attention-driven implicit memory retrieval mechanism to overcome these limitations. By injecting viewpoint information via positional encoding, our method performs flexible memory retrieval through attention computation. To efficiently process extended contexts with minimal computational overhead, we further introduce a lightweight context compression network. Furthermore, we construct <strong class="gradient-term">SceneFly</strong>, a large-scale synthetic dataset featuring realistic camera trajectories and frame-level annotations to train and evaluate long-horizon video world models. Extensive experiments demonstrate that our approach achieves state-of-the-art results on established benchmarks and exhibits strong generalization to open-domain scenes.</p>
+    </div></div>
+</section>
+
+<!-- ==================== SCENEFLY DATASET ==================== -->
+<section id="scenefly-dataset" class="mb-20 section-animate">
+    <div class="mb-8">
+        <h2 class="text-3xl font-bold text-white mb-3">SceneFly Dataset</h2>
+        <p class="text-gray-500 max-w-3xl">From raw rendered trajectories to retrieval-oriented training pairs</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="glow-border card-hover"><div class="glass rounded-2xl p-7 h-full">
+            <p class="text-4xl font-black gradient-text-animated mb-2">≈1,000 min</p>
+            <p class="text-sm font-semibold text-white">Raw rendered video</p>
+            <p class="text-xs text-gray-500 mt-2">Collected UE5 trajectories before pair construction</p>
+        </div></div>
+        <div class="glow-border card-hover"><div class="glass rounded-2xl p-7 h-full">
+            <p class="text-4xl font-black gradient-text-animated mb-2">529 h</p>
+            <p class="text-sm font-semibold text-white">Processed training data</p>
+            <p class="text-xs text-gray-500 mt-2">Target–context pairs after segmentation and sampling</p>
+        </div></div>
+        <div class="glow-border card-hover"><div class="glass rounded-2xl p-7 h-full">
+            <p class="text-4xl font-black gradient-text-animated mb-2">100</p>
+            <p class="text-sm font-semibold text-white">UE5 environments</p>
+            <p class="text-xs text-gray-500 mt-2">Indoor, outdoor, and stylized scenes</p>
+        </div></div>
+    </div>
+    <div class="glow-border"><div class="glass rounded-2xl p-8 md:p-10">
+        <p class="text-gray-300 leading-relaxed text-[16px] text-left md:text-justify">SceneFly is built from approximately <strong class="text-blue-400">1,000 minutes of raw rendered video</strong> collected across 100 diverse Unreal Engine 5 environments, with exact frame-level camera intrinsics and extrinsics. After trajectory segmentation and target–context pair construction, the processed corpus comprises <strong class="text-purple-400">529 hours</strong> of training data. Using different sampling configurations, the processing scripts can construct additional target–context pairs from the <em>same collected raw trajectories</em>, expanding the training corpus without collecting or generating new trajectories.</p>
     </div></div>
 </section>
 
