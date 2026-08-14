@@ -96,7 +96,7 @@ A dual-branch compression network converts the historical video into compact con
 
 ## SceneFly Dataset
 
-**SceneFly** is a large-scale synthetic dataset featuring realistic camera trajectories and frame-level annotations to train and evaluate long-horizon video world models. It is built in Unreal Engine 5 and contains roughly 1,000 minutes of footage across 100 varied environments, together with precise camera parameters for evaluating long-horizon camera-aware generation. We currently release a partial version of SceneFly (about half of the full dataset) on [Hugging Face](https://huggingface.co/datasets/Orange-3DV-Team/SceneFly); the complete dataset will be provided in a future release.
+**SceneFly** is a large-scale synthetic dataset featuring realistic camera trajectories and frame-level annotations to train and evaluate long-horizon video world models. Its raw collection contains approximately 1,000 minutes of rendered video from 100 varied Unreal Engine 5 environments, together with exact frame-level camera intrinsics and extrinsics. After trajectory segmentation and target-context pair construction, the processed corpus comprises **529 hours** of training data. Using different sampling configurations, the processing scripts can construct additional target-context pairs from the same collected raw trajectories, expanding the training corpus without collecting or generating new trajectories. We currently release a partial version of SceneFly (about half of the full dataset) on [Hugging Face](https://huggingface.co/datasets/Orange-3DV-Team/SceneFly); the complete dataset will be provided in a future release.
 
 ---
 
